@@ -13,7 +13,8 @@ for (const directory of ['src', 'scripts', 'web', 'tests']) {
     if (result.status !== 0) process.exit(result.status || 1);
   }
 }
-for (const argumentsList of [['scripts/build.mjs'], ['--test', ...((await readdir(path.join(root, 'tests'))).filter(name => name.endsWith('.test.mjs')).map(name => `tests/${name}`))]]) {
+const typeScriptCompiler = fileURLToPath(new URL('../node_modules/typescript/bin/tsc', import.meta.url));
+for (const argumentsList of [[typeScriptCompiler, '--project', 'tsconfig.json'], ['scripts/build.mjs'], ['--test', ...((await readdir(path.join(root, 'tests'))).filter(name => name.endsWith('.test.mjs')).map(name => `tests/${name}`))]]) {
   const result = spawnSync(process.execPath, argumentsList, { cwd: root, stdio: 'inherit' });
   if (result.status !== 0) process.exit(result.status || 1);
 }

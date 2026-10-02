@@ -1,0 +1,227 @@
+{
+  "date": "2026-10-03",
+  "scope": "Browser fixtures only: isolated headless geometry and desktop rendering, plus background Chrome visual confirmation",
+  "runtimeSha256": "1ce84ac82e87945cf5ed5eca3454288409d573cee314477a676c4e6b3c22b036",
+  "sharkData": {
+    "width": 164,
+    "height": 160,
+    "points": 5745,
+    "pointsSha256": "360c17d91ddf7d031d94e55e493ba7c7fac9bda4d74bc976eb4db2a237393e2e"
+  },
+  "nativeCodexLiveVerified": false,
+  "browser": {
+    "product": "Chrome",
+    "version": "154.0.8037.59",
+    "isolatedProfile": true,
+    "headless": true,
+    "softwareWebglFallbackAllowed": true
+  },
+  "checks": {
+    "wideAndNarrowOriginalLayout": true,
+    "layoutWebgl2": true,
+    "desktopActualWebglAnimationAndPalette": true,
+    "backgroundActualWebglAndPalette": true,
+    "shark5745PointsAndBlueWhitePixels": true,
+    "screenshotVisuallyReviewedForPrivateContent": true
+  },
+  "passed": true,
+  "layout": {
+    "fixtureOnly": true,
+    "desktop": {
+      "viewport": [
+        1500,
+        950
+      ],
+      "originalNodesCompared": 130,
+      "controlsCompared": 37,
+      "mounted": {
+        "maximumGeometryDeltaPx": 0,
+        "layoutChanges": 0,
+        "contentChanges": 0,
+        "hitTargetChanges": 0
+      },
+      "extreme": {
+        "maximumGeometryDeltaPx": 0,
+        "layoutChanges": 0,
+        "contentChanges": 0,
+        "hitTargetChanges": 0
+      },
+      "afterKeyboard": {
+        "maximumGeometryDeltaPx": 0,
+        "layoutChanges": 0,
+        "contentChanges": 0,
+        "hitTargetChanges": 0
+      },
+      "removed": {
+        "maximumGeometryDeltaPx": 0,
+        "layoutChanges": 0,
+        "contentChanges": 0,
+        "hitTargetChanges": 0
+      },
+      "decorations": {
+        "fish": 0,
+        "bubbles": 5,
+        "plankton": 4,
+        "centralMarks": 1
+      },
+      "toggles": {
+        "markSurvivedOff": true,
+        "markSurvivedOn": true,
+        "fishAfterToggle": 0
+      },
+      "keyboard": {
+        "focusEntered": true,
+        "closed": true,
+        "focusReturned": true,
+        "escapePrevented": true,
+        "nativeEscapeCount": 0,
+        "nativeEscapePassed": true,
+        "respectedCancelledShortcut": true,
+        "shortcutOpened": true
+      },
+      "selectorReleased": true,
+      "selectorRestored": true,
+      "reinjected": {
+        "panels": 1,
+        "backdrops": 1,
+        "centralMarks": 1,
+        "fish": 0
+      },
+      "cleanup": {
+        "skinGlobal": false,
+        "ownedLayers": 0,
+        "ownedMarkers": 0
+      },
+      "webgl2": true,
+      "centralParticlePaintedPixels": 48592,
+      "errors": []
+    },
+    "narrow": {
+      "viewport": [
+        390,
+        844
+      ],
+      "originalNodesCompared": 130,
+      "controlsCompared": 37,
+      "mounted": {
+        "maximumGeometryDeltaPx": 0,
+        "layoutChanges": 0,
+        "contentChanges": 0,
+        "hitTargetChanges": 0
+      },
+      "extreme": {
+        "maximumGeometryDeltaPx": 0,
+        "layoutChanges": 0,
+        "contentChanges": 0,
+        "hitTargetChanges": 0
+      },
+      "afterKeyboard": {
+        "maximumGeometryDeltaPx": 0,
+        "layoutChanges": 0,
+        "contentChanges": 0,
+        "hitTargetChanges": 0
+      },
+      "removed": {
+        "maximumGeometryDeltaPx": 0,
+        "layoutChanges": 0,
+        "contentChanges": 0,
+        "hitTargetChanges": 0
+      },
+      "decorations": {
+        "fish": 0,
+        "bubbles": 5,
+        "plankton": 4,
+        "centralMarks": 1
+      },
+      "toggles": {
+        "markSurvivedOff": true,
+        "markSurvivedOn": true,
+        "fishAfterToggle": 0
+      },
+      "keyboard": {
+        "focusEntered": true,
+        "closed": true,
+        "focusReturned": true,
+        "escapePrevented": true,
+        "nativeEscapeCount": 0,
+        "nativeEscapePassed": true,
+        "respectedCancelledShortcut": true,
+        "shortcutOpened": true
+      },
+      "selectorReleased": true,
+      "selectorRestored": true,
+      "reinjected": {
+        "panels": 1,
+        "backdrops": 1,
+        "centralMarks": 1,
+        "fish": 0
+      },
+      "cleanup": {
+        "skinGlobal": false,
+        "ownedLayers": 0,
+        "ownedMarkers": 0
+      },
+      "webgl2": true,
+      "centralParticlePaintedPixels": 17706,
+      "errors": []
+    },
+    "passed": true
+  },
+  "rendering": {
+    "desktop": {
+      "viewport": {
+        "width": 1500,
+        "height": 950
+      },
+      "renderer": "webgl2",
+      "actualWebglDrawCalls": 302,
+      "sampledFrames": 12,
+      "changedAnimationSamples": 12,
+      "renderedPixelsVerified": true,
+      "displayPaletteUniformsUpdated": true,
+      "parameterUpdateVerified": true,
+      "sharkDrawCallsPerFrame": 5745,
+      "sharkBlueDrawCalls": 3060,
+      "sharkWhiteDrawCalls": 2132,
+      "sharkToggleVerified": true,
+      "paintedPixels": 42387,
+      "bluePixels": 22484,
+      "whitePixels": 15851,
+      "canvasSize": [
+        660,
+        660
+      ],
+      "mainCenterDeltaPx": 0,
+      "errors": []
+    }
+  },
+  "errors": [],
+  "isolatedHeadlessDiagnostic": {
+    "completed": false,
+    "failureStage": "Narrow rendering probe",
+    "reason": "Instrumented test Chrome exited before the final narrow rendering diagnostic completed",
+    "observationsBeforeExitRetained": true
+  },
+  "backgroundChromeConfirmation": {
+    "fixtureOnly": true,
+    "screenshotMode": "reduced-motion",
+    "renderer": "webgl2",
+    "compiled": true,
+    "paletteUpdated": true,
+    "sharkDrawCalls": 5745,
+    "paintedPixels": 88613,
+    "bluePixels": 47270,
+    "whitePixels": 32853,
+    "mainCenterDeltaPx": 0.33331298828125,
+    "errors": [],
+    "overflow": false
+  },
+  "screenshot": "docs/assets/preview-dark.png",
+  "screenshotReducedMotion": true,
+  "limits": [
+    "Fixtures contain sample content and do not establish real Codex desktop acceptance.",
+    "The instrumented headless diagnostic did not complete; its completed geometry and desktop observations are retained separately.",
+    "The reviewed screenshot uses reduced motion so the shark is fully assembled in a background tab.",
+    "No FPS, GPU performance or full-interface accessibility guarantee is established."
+  ]
+}

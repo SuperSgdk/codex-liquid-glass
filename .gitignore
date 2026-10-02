@@ -7,3 +7,23 @@ node_modules/
 Thumbs.db
 validation/
 dist/
+
+# Local credentials and material that must not enter the public repository.
+*.pem
+*.key
+*.p12
+*.pfx
+*.p8
+*.jks
+*.keystore
+private/
+local/
+secrets/
+credentials/
+screenshots/
+recordings/
+backups/
+*.bak
+*.dump
+*.sqlite
+*.sqlite3

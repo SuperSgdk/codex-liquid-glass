@@ -1,0 +1,40 @@
+Codex Liquid Glass
+Independent adaptation and maintenance by SuperSgdk, 2026.
+
+The TypeScript fluid renderer wrapper, continuous palette, interaction
+helpers, glass materials and ambient decorations derive from:
+  SuperSgdk/DSH-Liquid-Glass-Theme
+  https://github.com/SuperSgdk/DSH-Liquid-Glass-Theme
+  Source commit: 98d2873334ce42e5cb26b5031165207d040645b1
+
+That project inherits Aqua / DSH-Transparent-UI-Plugin by John Wu
+(WYH66666666), copyright 2026:
+  https://github.com/WYH66666666/DSH-Transparent-UI-Plugin
+  License checked at: d94431a95bd147c11ef3fe95fa1915d1e96b028b
+Both source repositories declare AGPL-3.0. The project code is distributed
+under AGPL-3.0-only; the full license is included in LICENSE. Existing
+copyright notices and Cyber-Yu-Git's hidden-canvas contribution (PR #5)
+are retained. Detailed attribution is in src/core/PROVENANCE.txt and
+src/decorations/PROVENANCE.md.
+
+The website-derived GLSL strings and dot-grid implementation have been
+replaced with independently written implementations. The shader wrapper
+and other inherited TypeScript remain subject to their upstream license.
+The Codex DOM adapter, settings, resource cleanup, loopback loader and
+blue-white shark particle renderer are maintained in this repository.
+
+The shark point data is derived from the image supplied by the repository
+owner for this project. It contains only coordinates, RGB values and
+outline flags. The original PNG and its metadata are not included.
+The owner authorized this particle use and publication on 2026-10-02 and
+confirmed on 2026-10-03 that the original image is their own. The artwork
+is credited to SuperSgdk and included with permission for this project.
+AGPL applies to the project code; this notice does not grant a separate
+general artwork license. See decoration provenance.
+
+No OpenAI / ChatGPT logo asset, source-project font files, Cordis host
+bundle, DSH application code or Codex application JavaScript is included.
+Codex and other product names belong to their respective owners.
+Build tools esbuild (MIT, Evan Wallace) and TypeScript (Apache-2.0,
+Microsoft) retain their licenses in their own dependency packages;
+neither is required by the skin runtime in the browser.

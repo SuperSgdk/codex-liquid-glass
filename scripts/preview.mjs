@@ -19,6 +19,11 @@ export function createPreviewServer() {
   return createServer(async (request, response) => {
     try {
       const path = new URL(request.url, 'http://127.0.0.1').pathname;
+      if (request.method === 'GET' && path === '/skin.js') {
+        const body = await readFile(new URL('../dist/codex-glass.runtime.js', import.meta.url));
+        response.writeHead(200, { 'Content-Type':'text/javascript; charset=utf-8', 'Cache-Control':'no-store', 'X-Content-Type-Options':'nosniff' });
+        return response.end(body);
+      }
       if (request.method === 'GET' && path === '/api/presets') return json(response, 200, presets);
       if (request.method === 'POST' && path === '/api/export') {
         if (!request.headers['content-type']?.startsWith('application/json')) {

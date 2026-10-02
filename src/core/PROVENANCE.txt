@@ -1,0 +1,30 @@
+Portable fluid backdrop core
+Code license: AGPL-3.0-only. Full text: ../../LICENSE.
+
+Direct source:
+  https://github.com/SuperSgdk/DSH-Liquid-Glass-Theme
+  commit 98d2873334ce42e5cb26b5031165207d040645b1
+  src/client/fluid-shader.ts (TypeScript wrapper, not current GLSL)
+  src/client/fluid-tones.ts
+  src/client/fluid-interactions.ts
+
+Original project: Aqua / DSH-Transparent-UI-Plugin by John Wu
+(WYH66666666), copyright 2026.
+  https://github.com/WYH66666666/DSH-Transparent-UI-Plugin
+  License checked at d94431a95bd147c11ef3fe95fa1915d1e96b028b
+Both repositories declare AGPL-3.0; existing attribution is preserved.
+Community contribution: Cyber-Yu-Git, hidden-canvas safeguards (PR #5).
+
+Publication changes, 2026-10-02:
+  - All three GLSL programs independently rewritten: vertex mapping,
+    neighboring-sample flow diffusion, compact pointer velocity injection,
+    moving sinusoidal layers and continuous three-color blending.
+  - Website-derived mesh implementation replaced with independent code.
+  - Continuous upstream palette and TypeScript renderer lifecycle retained.
+  - Added host-independent mount/update/dispose/status, GL disposal and
+    flow-target resizing, reduced-motion redraw and CSS fallback.
+
+The former website-copying comments do not establish a redistribution
+license for that site's source. Those implementations are not distributed
+here. No DeepSeek logo, fish, source-project fonts, host bundle, settings
+service or DSH application code is included.

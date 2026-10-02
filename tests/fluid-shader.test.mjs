@@ -209,7 +209,8 @@ test('continuous mode preserves one throttled loop and removes its pointer liste
   assert.equal(env.draws.length, 2);
   assert.deepEqual(env.draws.at(-1).uniforms.u_color1, [1, 0, 0, 1]);
   assert.deepEqual(env.draws.at(-1).uniforms.u_resolution, [600, 300]);
-  assert.ok(env.draws.at(-1).uniforms.u_time[0] > 0);
+  assert.ok(Math.abs(env.draws.at(-1).uniforms.u_time[0] - 0.007) < 1e-8,
+    'the default clock advances at the DSH rate of 0.14 per second, including after a resize');
   env.runFrame(60);
   assert.equal(env.draws.length, 2);
   assert.equal(env.frames.size, 1);

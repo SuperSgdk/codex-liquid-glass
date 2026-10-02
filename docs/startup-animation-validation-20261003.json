@@ -1,0 +1,163 @@
+{
+  "date": "2026-10-03",
+  "automatedChecks": {
+    "command": "pnpm run check",
+    "tests": 141,
+    "passed": 141,
+    "failed": 0,
+    "skipped": 0
+  },
+  "startup": {
+    "mountAt": "document.head and document.body available",
+    "successRequires": "mounted controller and Codex main match",
+    "controlledClockFixtureMs": {
+      "bodyAt": 100,
+      "mainAt": 400,
+      "completeAt": 900,
+      "previousInstallAt": 900,
+      "currentInstallAt": 100,
+      "currentVerifiedAt": 400
+    },
+    "actualAppColdStartTimed": false,
+    "zeroNativeFlashGuaranteed": false
+  },
+  "shark": {
+    "initialEntrance": true,
+    "durationMs": 900,
+    "gpuDrawLimitFps": 60,
+    "pointCount": 5745,
+    "pointPositionsAndColorsPreserved": true,
+    "maximumHolderCssPx": 504,
+    "interruptedEntrance": "restart the unfinished entrance after a temporary missing chat column; completed entrances do not replay for that gap",
+    "nativeAutomaticEntrance": {
+      "scope": "automatic entrance after replacing only the theme in the existing native renderer; no app restart or chat navigation",
+      "counts": {
+        "compiles": 2,
+        "uploads": 1,
+        "draws": 55
+      },
+      "maximumScatter": 0.9996414729027328,
+      "observed": true,
+      "completed": true,
+      "focusPreserved": true,
+      "active": true,
+      "renderer": "webgl2",
+      "frameIntervalsMs": {
+        "median": 6.099999999976717,
+        "p95": 6.200000000069849,
+        "maximum": 212.20000000006985
+      },
+      "longTasks": [
+        124,
+        87
+      ],
+      "hidden": false
+    },
+    "nativeManualReplay": {
+      "method": "manual native replay without chat navigation",
+      "before": {
+        "scope": "manual native replay without chat navigation",
+        "counts": {
+          "compileShader": 0,
+          "bufferData": 0,
+          "drawArrays": 150
+        },
+        "callbacks": 175,
+        "intervalMs": {
+          "median": 6.099999999976717,
+          "p95": 6.2000000000116415,
+          "max": 6.300000000017462
+        },
+        "drawCpuMs": 0.30000001192092896,
+        "longTasks": [],
+        "complete": true,
+        "viewport": {
+          "width": 1294,
+          "height": 826,
+          "dpr": 1.5
+        },
+        "reducedMotion": false
+      },
+      "after": {
+        "scope": "manual native replay without chat navigation",
+        "counts": {
+          "compileShader": 0,
+          "bufferData": 0,
+          "drawArrays": 54
+        },
+        "callbacks": 175,
+        "intervalMs": {
+          "median": 6.099999999976717,
+          "p95": 6.200000000069849,
+          "max": 6.299999999930151
+        },
+        "drawCpuMs": 0,
+        "longTasks": [],
+        "complete": true,
+        "viewport": {
+          "width": 1294,
+          "height": 826,
+          "dpr": 1.5
+        },
+        "reducedMotion": false
+      },
+      "drawReductionPercent": 64
+    },
+    "browserFixture": {
+      "method": "owned real Chrome WebGL fixture, controlled 165Hz callbacks; no native chat navigation",
+      "initial": {
+        "burstMax": 0.9996433886091497,
+        "completed": true,
+        "draws": 53,
+        "pendingStaticHidden": true
+      },
+      "noise": {
+        "mutations": 30,
+        "nodes": 4101,
+        "scans": 0,
+        "subtreeQueries": 0
+      },
+      "coalescing": {
+        "mutationBatches": 10,
+        "scansBeforeFrame": 0,
+        "scansInFrame": 1
+      },
+      "switching": {
+        "compiles": 0,
+        "completed": true,
+        "computedCanvasStyleReads": 0,
+        "draws": 53,
+        "retainedCanvas": true,
+        "uploads": 0
+      },
+      "visualStagesReviewed": [
+        "burst",
+        "returning",
+        "complete"
+      ]
+    }
+  },
+  "runtimeScanning": {
+    "irrelevantMessageAttributeChanges": "cached native nodes replace message subtree selector queries",
+    "foreground": "coalesce mutation batches in one animation frame",
+    "background": "microtask cleanup with visibility migration",
+    "realChromeControlledFixture": {
+      "mutations": 30,
+      "nodes": 4101,
+      "scans": 0,
+      "subtreeQueries": 0
+    },
+    "foregroundCoalescing": {
+      "mutationBatches": 10,
+      "scansBeforeFrame": 0,
+      "scansInFrame": 1
+    }
+  },
+  "limits": [
+    "Native entrance was observed after replacing only this theme in the existing app; no application exit/restart was performed.",
+    "Native replay measurements cover one manual replay before and after the change, without changing real conversations.",
+    "Chrome fixture navigation uses synthetic conversation markers and controlled callbacks; it is not a native navigation latency benchmark.",
+    "The automatic native entrance observation included 124ms and 87ms long tasks during initial runtime and shader preparation; warmed manual replay observed none.",
+    "Earlier injection removes the complete-app-shell wait. An external launcher still connects after the native renderer exists, so zero native-theme flash is not promised."
+  ]
+}

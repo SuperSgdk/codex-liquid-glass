@@ -15,10 +15,17 @@ Original project: Aqua / DSH-Transparent-UI-Plugin by John Wu
 Both repositories declare AGPL-3.0; existing attribution is preserved.
 Community contribution: Cyber-Yu-Git, hidden-canvas safeguards (PR #5).
 
-Publication changes, 2026-10-02:
+Portable adaptation and follow-up repairs, 2026-10-02 to 2026-10-03:
   - All three GLSL programs independently rewritten: vertex mapping,
     neighboring-sample flow diffusion, compact pointer velocity injection,
     moving sinusoidal layers and continuous three-color blending.
+  - 2026-10-03: independently implemented smooth lattice fields and advected
+    domain warping for visible rolling color pools; adjusted animation timing.
+  - 2026-10-03 follow-up: replaced the cloudy multi-octave density renderer
+    with CSS-pixel-scaled, cross-coupled waves. Recreated the DSH visual recipe
+    (slow phase, direction/strength fields, harmonic shears and ordered soft
+    palette blending) using this renderer's own lattice field and lifecycle.
+    No website shader strings are included; the noise pattern is independent.
   - Website-derived mesh implementation replaced with independent code.
   - Continuous upstream palette and TypeScript renderer lifecycle retained.
   - Added host-independent mount/update/dispose/status, GL disposal and

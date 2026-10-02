@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 
-export type GlassSurfaceKind = 'sidebar' | 'composer';
+export type GlassSurfaceKind = 'sidebar' | 'composer' | 'panel';
 export interface GlassSurfaceTarget { element: HTMLElement; kind: GlassSurfaceKind; }
 export interface GlassPointerOptions {
   /** Viewport coordinates, matching PointerEvent.clientX/clientY. */
@@ -15,63 +15,100 @@ interface SurfaceRecord {
   kind: GlassSurfaceKind;
   surface: HTMLDivElement;
   rect: DOMRect | null;
+  releaseTimer: number;
 }
 
-const FRAME_INTERVAL = 1000 / 30;
+// The same signed press recipe as DSH's src/client/spotlight.ts: the edge
+// under the cursor goes into the screen, and the opposite edge lifts.
+const TILT_MAX = .0175;
+const TILT_PERSPECTIVE = 800;
+const SETTLE_MS = 240;
 const POINTER_PROPERTIES = ['--cg-glow-x', '--cg-glow-y', '--cg-press-shadow'];
+const CORNER_PROPERTIES = ['border-top-left-radius', 'border-top-right-radius', 'border-bottom-right-radius', 'border-bottom-left-radius'];
 
 /**
- * Draw glass in an independent fixed host, without changing native elements.
- * The host should cover the viewport. Native DOM is read only: its rectangles
- * and existing corner radii tell these absolute, noninteractive layers where
- * to paint. In particular, native controls never receive a filter, transform,
- * border, position, sizing rule, or additional child from this module.
+ * Paint noninteractive glass behind the native controls. Only these separate
+ * surfaces rotate, so input hitboxes, sidebar menus and fixed dialogs keep
+ * their native geometry. Layout is measured after actual changes, never by
+ * an idle animation loop; pointer bursts share one frame and cached bounds.
  */
 export function mountGlassSurfaces(host: HTMLElement) {
   const records = new Map<HTMLElement, SurfaceRecord>();
   let pointer: { record: SurfaceRecord; options: GlassPointerOptions } | null = null;
   let disposed = false;
   let raf = 0;
-  let lastPaint = -Infinity;
+  let geometryDirty = true;
 
   function ownStyle(record: SurfaceRecord, property: string, value: string) {
-    if (record.surface.style.getPropertyValue(property) !== value) {
-      record.surface.style.setProperty(property, value);
-    }
+    if (record.surface.style.getPropertyValue(property) !== value) record.surface.style.setProperty(property, value);
   }
 
   function removeOwnStyle(record: SurfaceRecord, property: string) {
     if (record.surface.style.getPropertyValue(property)) record.surface.style.removeProperty(property);
   }
 
+  function cancelRelease(record: SurfaceRecord) {
+    if (record.releaseTimer) window.clearTimeout(record.releaseTimer);
+    record.releaseTimer = 0;
+  }
+
+  function releasePress(record: SurfaceRecord, immediate = false) {
+    cancelRelease(record);
+    if (!record.surface.style.getPropertyValue('transform')) return;
+    if (immediate) { removeOwnStyle(record, 'transform'); return; }
+    ownStyle(record, 'transform', `perspective(${TILT_PERSPECTIVE}px) rotateX(0rad) rotateY(0rad) scale(1)`);
+    record.releaseTimer = window.setTimeout(() => {
+      record.releaseTimer = 0;
+      removeOwnStyle(record, 'transform');
+    }, SETTLE_MS);
+  }
+
   function clearPointer() {
-    if (pointer) for (const property of POINTER_PROPERTIES) removeOwnStyle(pointer.record, property);
+    if (pointer) {
+      for (const property of POINTER_PROPERTIES) removeOwnStyle(pointer.record, property);
+      releasePress(pointer.record);
+    }
     pointer = null;
   }
 
   function removeRecord(record: SurfaceRecord) {
     if (pointer?.record === record) clearPointer();
+    cancelRelease(record);
+    resizeObserver?.unobserve(record.element);
+    visibilityObserver?.unobserve(record.element);
     record.surface.remove();
     records.delete(record.element);
     record.rect = null;
   }
 
-  function paintPointer(record: SurfaceRecord) {
-    if (pointer?.record !== record || record.surface.hidden || !record.rect) return;
-    const { x, y, press, spotlight } = pointer.options;
+  function paintPointer() {
+    if (!pointer) return;
+    const { record, options: { x, y, press, spotlight } } = pointer;
+    const rect = record.rect;
+    if (record.surface.hidden || !rect || x < rect.left || x > rect.right || y < rect.top || y > rect.bottom) {
+      clearPointer(); return;
+    }
     if (spotlight) {
-      ownStyle(record, '--cg-glow-x', `${x - record.rect.left}px`);
-      ownStyle(record, '--cg-glow-y', `${y - record.rect.top}px`);
+      ownStyle(record, '--cg-glow-x', `${x - rect.left}px`);
+      ownStyle(record, '--cg-glow-y', `${y - rect.top}px`);
     } else {
       removeOwnStyle(record, '--cg-glow-x');
       removeOwnStyle(record, '--cg-glow-y');
     }
-    // The optional press effect changes only the painted shadow, never geometry.
-    if (press) ownStyle(record, '--cg-press-shadow', 'inset 0 3px 18px var(--cg-shadow)');
-    else removeOwnStyle(record, '--cg-press-shadow');
+    if (press) {
+      cancelRelease(record);
+      const dx = Math.min(.5, Math.max(-.5, (x - rect.left) / rect.width - .5));
+      const dy = Math.min(.5, Math.max(-.5, (y - rect.top) / rect.height - .5));
+      ownStyle(record, 'transform', `perspective(${TILT_PERSPECTIVE}px) rotateX(${-2 * TILT_MAX * dy}rad) rotateY(${2 * TILT_MAX * dx}rad) scale(1.01)`);
+      ownStyle(record, '--cg-press-shadow', `inset ${-dx * 8}px ${-dy * 8}px 18px var(--cg-shadow)`);
+    } else {
+      removeOwnStyle(record, '--cg-press-shadow');
+      if (!record.releaseTimer) releasePress(record);
+    }
   }
 
-  function paint() {
+  function measure() {
+    geometryDirty = false;
     const hostRect = host.getBoundingClientRect();
     const originX = hostRect.left + host.clientLeft - host.scrollLeft;
     const originY = hostRect.top + host.clientTop - host.scrollTop;
@@ -88,37 +125,68 @@ export function mountGlassSurfaces(host: HTMLElement) {
         }));
       if (surface.hidden === visible) surface.hidden = !visible;
       record.rect = visible ? rect : null;
-      if (!visible) continue;
+      if (!visible) {
+        if (pointer?.record === record) clearPointer();
+        releasePress(record, true);
+        continue;
+      }
       ownStyle(record, 'left', `${rect.left - originX}px`);
       ownStyle(record, 'top', `${rect.top - originY}px`);
       ownStyle(record, 'width', `${rect.width}px`);
       ownStyle(record, 'height', `${rect.height}px`);
       ownStyle(record, 'opacity', computed.opacity);
-      for (const property of ['border-top-left-radius', 'border-top-right-radius', 'border-bottom-right-radius', 'border-bottom-left-radius']) {
-        ownStyle(record, property, computed.getPropertyValue(property));
-      }
-      paintPointer(record);
+      // Native composer variants can be square. The skin owns their painted
+      // corners and gives chat inputs the same rounding as its sidebar.
+      for (const property of CORNER_PROPERTIES) ownStyle(record, property, record.kind === 'panel' ? computed.getPropertyValue(property) : '26px');
     }
   }
 
-  function frame(time: number) {
+  function frame() {
     raf = 0;
-    if (disposed) return;
-    if (time - lastPaint >= FRAME_INTERVAL) { lastPaint = time; paint(); }
-    if (records.size) raf = requestAnimationFrame(frame);
+    if (disposed || document.hidden) return;
+    if (geometryDirty) measure();
+    paintPointer();
   }
 
   function start() {
-    if (!disposed && records.size && !raf) raf = requestAnimationFrame(frame);
+    if (!disposed && !document.hidden && records.size && !raf) raf = requestAnimationFrame(frame);
   }
+
+  function invalidate() { geometryDirty = true; start(); }
+  const resizeObserver = typeof ResizeObserver === 'function' ? new ResizeObserver(invalidate) : null;
+  const visibilityObserver = typeof IntersectionObserver === 'function' ? new IntersectionObserver(invalidate) : null;
+  resizeObserver?.observe(host);
+  // Runtime sync covers node/class changes. Inline visibility changes and
+  // native layout animations can occur without replacing a chat's nodes.
+  const mutationObserver = typeof MutationObserver === 'function' ? new MutationObserver(changes => {
+    if (changes.some(change => {
+      const target = change.target;
+      if (!(target instanceof Element) || target.closest('.cg-materials,.cg-backdrop,.cg-decorations,.cg-settings-panel')) return false;
+      // Child content resizing is already covered by ResizeObserver. Only
+      // the surface's own visibility/position or its ancestors can change
+      // our rectangle without a size notification; unrelated animation
+      // styles must not wake the layout reader.
+      for (const element of records.keys()) if (target === element || target.contains(element)) return true;
+      return false;
+    })) invalidate();
+  }) : null;
+  if (document.body) mutationObserver?.observe(document.body, { subtree: true, attributes: true, attributeFilter: ['style', 'hidden', 'open'] });
+  const onVisibility = () => {
+    if (document.hidden) {
+      if (raf) cancelAnimationFrame(raf);
+      raf = 0;
+      clearPointer();
+    } else invalidate();
+  };
+  window.addEventListener('resize', invalidate, { passive: true });
+  document.addEventListener('scroll', invalidate, { passive: true, capture: true });
+  document.addEventListener('visibilitychange', onVisibility);
 
   return {
     sync(targets: GlassSurfaceTarget[]) {
       if (disposed) return;
       const desired = new Map<HTMLElement, GlassSurfaceKind>();
-      for (const { element, kind } of targets) {
-        if (element.isConnected && !desired.has(element)) desired.set(element, kind);
-      }
+      for (const { element, kind } of targets) if (element.isConnected && !desired.has(element)) desired.set(element, kind);
       for (const record of records.values()) if (!desired.has(record.element)) removeRecord(record);
       for (const [element, kind] of desired) {
         let record = records.get(element);
@@ -130,17 +198,21 @@ export function mountGlassSurfaces(host: HTMLElement) {
           surface.hidden = true;
           surface.style.position = 'absolute';
           surface.style.pointerEvents = 'none';
-          record = { element, kind, surface, rect: null };
+          record = { element, kind, surface, rect: null, releaseTimer: 0 };
           records.set(element, record);
           host.appendChild(surface);
+          resizeObserver?.observe(element);
+          visibilityObserver?.observe(element);
         } else if (record.kind !== kind) {
           record.kind = kind;
           record.surface.dataset.cgMaterialFor = kind;
         }
       }
       if (!records.size && raf) { cancelAnimationFrame(raf); raf = 0; }
-      paint();
-      start();
+      // CDP can hot-load the skin while the native window is in the
+      // background and RAF is suspended. Its first static material must
+      // still be complete, before any foreground visibility event arrives.
+      if (document.hidden) measure(); else invalidate();
     },
     updatePointer(element: HTMLElement, options: GlassPointerOptions) {
       if (disposed) return;
@@ -148,7 +220,6 @@ export function mountGlassSurfaces(host: HTMLElement) {
       if (!record || !Number.isFinite(options.x) || !Number.isFinite(options.y)) { clearPointer(); return; }
       if (pointer?.record !== record) clearPointer();
       pointer = { record, options: { ...options } };
-      paintPointer(record);
       start();
     },
     clearPointer,
@@ -166,6 +237,10 @@ export function mountGlassSurfaces(host: HTMLElement) {
       if (raf) cancelAnimationFrame(raf);
       raf = 0;
       clearPointer();
+      resizeObserver?.disconnect(); visibilityObserver?.disconnect(); mutationObserver?.disconnect();
+      window.removeEventListener('resize', invalidate);
+      document.removeEventListener('scroll', invalidate, true);
+      document.removeEventListener('visibilitychange', onVisibility);
       for (const record of records.values()) removeRecord(record);
       records.clear();
     },

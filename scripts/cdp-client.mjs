@@ -1,4 +1,12 @@
 const MAIN_URL = /^app:\/\/-\/index\.html(?:\?[^#]*)?$/;
+const AUXILIARY_ROUTE = /^\/(?:avatar-overlay|detached-window)(?:[/?#]|$)/;
+
+export function isMainRendererUrl(url) {
+  if (typeof url !== 'string' || !MAIN_URL.test(url)) return false;
+  // The avatar overlay also loads index.html. URLSearchParams decodes its
+  // initialRoute, so it must be excluded before opening a renderer connection.
+  return !new URL(url).searchParams.getAll('initialRoute').some(route => AUXILIARY_ROUTE.test(route));
+}
 
 export function validatePort(port) {
   if (!Number.isInteger(port) || port < 1 || port > 65535) {
@@ -10,9 +18,11 @@ export function validatePort(port) {
 export function selectMainTarget(targets, port) {
   validatePort(port);
   if (!Array.isArray(targets)) throw new Error('The debugger returned an invalid target list.');
-  const matches = targets.filter(target => target?.type === 'page' && typeof target.url === 'string' && MAIN_URL.test(target.url));
+  const matches = targets.filter(target => target?.type === 'page' && isMainRendererUrl(target.url));
   if (matches.length !== 1) {
-    throw new Error(`Expected exactly one Codex main renderer, found ${matches.length}. Close extra Codex windows normally and inspect again.`);
+    const error = new Error(`Expected exactly one Codex main renderer, found ${matches.length}. ${matches.length ? 'Close extra Codex windows normally and inspect again.' : 'The main window may still be loading; avatar overlays and auxiliary windows are excluded.'}`);
+    if (matches.length === 0) error.code = 'CODEX_MAIN_NOT_READY';
+    throw error;
   }
   const target = matches[0];
   if (typeof target.id !== 'string' || !target.id) throw new Error('The Codex target has no id.');
@@ -30,16 +40,35 @@ export function selectMainTarget(targets, port) {
   return { id: target.id, url: publicUrl.href, webSocketDebuggerUrl: socketUrl.href };
 }
 
-export async function findMainTarget({ port = 9223, timeoutMs = 5000 } = {}) {
+export async function findMainTarget({ port = 9223, timeoutMs = 5000, waitForMain = false } = {}) {
   validatePort(port);
-  let response;
-  try {
-    response = await fetch(`http://127.0.0.1:${port}/json/list`, { redirect: 'error', signal: AbortSignal.timeout(timeoutMs) });
-  } catch {
-    throw new Error(`No usable debugger on 127.0.0.1:${port}. A normal Codex exit and explicit debug launch is required; this command never launches or restarts the app.`);
-  }
-  if (!response.ok) throw new Error(`Debugger discovery returned HTTP ${response.status}.`);
-  return selectMainTarget(await response.json(), port);
+  const deadline = performance.now() + timeoutMs;
+  let lastError;
+  do {
+    let response;
+    try {
+      response = await fetch(`http://127.0.0.1:${port}/json/list`, {
+        redirect: 'error', signal: AbortSignal.timeout(Math.max(1, Math.ceil(deadline - performance.now()))),
+      });
+    } catch {
+      lastError = new Error(`No usable debugger on 127.0.0.1:${port}. A normal Codex exit and explicit debug launch is required; this command never launches or restarts the app.`);
+    }
+    if (response) {
+      if (!response.ok) throw new Error(`Debugger discovery returned HTTP ${response.status}.`);
+      const targets = await response.json();
+      try { return selectMainTarget(targets, port); }
+      catch (error) {
+        // Wait only for read-only startup discovery. Ambiguous main windows,
+        // invalid responses and unsafe endpoints still fail immediately.
+        if (error.code !== 'CODEX_MAIN_NOT_READY') throw error;
+        lastError = error;
+      }
+    }
+    const remaining = deadline - performance.now();
+    if (!waitForMain || remaining <= 0) throw lastError;
+    await new Promise(resolve => setTimeout(resolve, Math.min(200, remaining)));
+  } while (performance.now() < deadline);
+  throw lastError;
 }
 
 export class CdpClient {
@@ -87,8 +116,13 @@ export class CdpClient {
     if (!pending) return;
     clearTimeout(pending.timer);
     this.#pending.delete(message.id);
-    if (message.error) pending.reject(new Error(`CDP ${pending.method} failed: ${message.error.message ?? message.error.code}`));
-    else pending.resolve(message.result);
+    if (message.error) {
+      const error = new Error(`CDP ${pending.method} failed: ${message.error.message ?? message.error.code}`);
+      error.code = message.error.code;
+      error.method = pending.method;
+      error.cdpMessage = message.error.message;
+      pending.reject(error);
+    } else pending.resolve(message.result);
   }
 
   #rejectPending(message) {

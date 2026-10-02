@@ -28,6 +28,8 @@
       <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 4v16M4 12h16"/></symbol>
       <symbol id="i-mic" viewBox="0 0 24 24"><rect x="8" y="2" width="8" height="13" rx="4"/><path d="M5 11v2a7 7 0 0 0 14 0v-2m-7 9v2"/></symbol>
       <symbol id="i-send" viewBox="0 0 24 24"><path d="M12 20V4m-6 6 6-6 6 6"/></symbol>
+      <symbol id="i-shield" viewBox="0 0 24 24"><path d="m12 2 8 4v6c0 5-5 8-8 10-3-2-8-5-8-10V6Z"/><path d="M12 7v6m0 3h.01"/></symbol>
+      <symbol id="i-bolt" viewBox="0 0 24 24"><path d="m13 2-9 12h7l-1 8 10-13h-8Z"/></symbol>
     </defs>
   </svg>
   <div id="root">
@@ -39,7 +41,7 @@
           <button class="icon-button" type="button" aria-label="切换侧边栏"><svg class="icon"><use href="#i-sidebar"/></svg></button>
         </div>
         <nav class="menu-items" aria-label="应用菜单"><button type="button">文件</button><button type="button">编辑</button><button type="button">视图</button><button type="button">帮助</button></nav>
-        <button class="fixture-settings" id="open-settings" type="button">皮肤设置 · 验证工具</button>
+        <div class="fixture-tools"><button class="fixture-settings" id="show-app-settings" type="button">设置页示例</button><button class="fixture-settings" id="open-settings" type="button">皮肤设置 · 验证工具</button></div>
       </header>
       <div data-app-shell-frame data-fixture-layout="shell">
         <nav class="app-rail" aria-label="应用功能" data-fixture-layout="app-rail">
@@ -104,18 +106,23 @@
                 </article>
               </div>
             </div>
-            <div class="composer-dock" data-fixture-layout="composer-dock">
-              <div class="composer-meta" data-fixture-layout="composer-meta"><span>本地</span><span>默认权限</span></div>
-              <div data-codex-composer-root data-composer-placement="bottom" data-fixture-layout="composer">
-                <div data-composer-surface-variant="default">
-                  <textarea class="composer-input" aria-label="消息输入" placeholder="询问任何问题，@ 添加文件，/ 使用命令"></textarea>
-                  <div class="composer-tools" data-fixture-layout="composer-tools">
+            <div class="composer-dock" data-thread-scroll-footer="true" data-fixture-layout="composer-dock">
+              <div class="pointer-events-none bg-surface fixture-footer-scrim" aria-hidden="true"></div>
+              <div data-codex-composer-root data-above-composer-conversation-id="fixture-chat-a" data-composer-placement="thread" data-fixture-layout="composer">
+                <div class="composer-frame-stack">
+                <div data-composer-layout="multiline" data-composer-padding-variant="none" data-composer-radius-variant="default" data-composer-surface-variant="default">
+                  <div data-composer-body>
+                  <textarea class="composer-input" aria-label="消息输入" placeholder="随心输入"></textarea>
+                  <div class="composer-tools" data-composer-footer data-fixture-layout="composer-tools">
                     <button class="icon-button" type="button" aria-label="添加附件"><svg class="icon"><use href="#i-plus"/></svg></button>
-                    <button class="model-picker" type="button">模型 <svg class="icon"><use href="#i-chevron"/></svg></button>
+                    <button class="permission-picker" type="button"><svg class="icon"><use href="#i-shield"/></svg>完全访问</button>
                     <span class="composer-spacer"></span>
+                    <button class="model-picker" type="button"><svg class="icon filled"><use href="#i-bolt"/></svg>GPT-6.1 Sol <span class="model-effort">Max</span><svg class="icon"><use href="#i-chevron"/></svg></button>
                     <button class="icon-button" type="button" aria-label="语音输入"><svg class="icon"><use href="#i-mic"/></svg></button>
                     <button class="send-button" type="button" aria-label="发送"><svg class="icon"><use href="#i-send"/></svg></button>
                   </div>
+                  </div>
+                </div>
                 </div>
               </div>
             </div>
@@ -124,6 +131,30 @@
       </div>
     </div>
   </div>
+  <template id="settings-page-template">
+    <div class="settings-content bg-surface" data-app-shell-main-content-layout>
+      <div class="settings-column group/settings" data-density="default">
+        <h1>常规</h1>
+        <h2>偏好</h2>
+        <section class="settings-card rounded-2xl border bg-surface" data-settings-card>
+          <div class="settings-row"><div><strong>通知</strong><p>任务完成时显示通知。</p></div><input type="checkbox" aria-label="通知" checked></div>
+          <div class="settings-row"><div><strong>底部面板</strong><p>在应用底部显示工作区面板。</p></div><input type="checkbox" aria-label="底部面板" checked></div>
+        </section>
+        <h2>工作区</h2>
+        <section class="settings-card rounded-2xl border bg-surface" data-settings-card>
+          <div class="settings-row"><strong>默认文件打开位置</strong><button type="button">编辑器 <svg class="icon"><use href="#i-chevron"/></svg></button></div>
+          <div class="settings-row"><strong>集成终端</strong><button type="button">PowerShell <svg class="icon"><use href="#i-chevron"/></svg></button></div>
+          <div class="settings-row"><strong>语言</strong><button type="button">自动检测 <svg class="icon"><use href="#i-chevron"/></svg></button></div>
+        </section>
+        <p class="settings-example-note">设置布局示例；这里的控件仅供本地视觉检查。</p>
+      </div>
+    </div>
+  </template>
+  <template id="settings-sidebar-template">
+    <h2 class="settings-sidebar-title">设置</h2>
+    <input id="settings-search" class="settings-search" type="search" aria-label="搜索设置" placeholder="搜索">
+    <div class="settings-nav"><span class="nav-caption">个人</span><button type="button" class="active">常规</button><button type="button">通知</button><button type="button">外观</button><button type="button">语言</button><button type="button">键盘快捷键</button><span class="nav-caption">集成</span><button type="button">插件</button><button type="button">浏览器</button></div>
+  </template>
   <div id="runtime-error" role="alert" hidden></div>
   <script src="/skin.js"></script>
   <script src="/app.js"></script>

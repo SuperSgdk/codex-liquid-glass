@@ -19,15 +19,16 @@ const REMOVE_EXPRESSION = `(async () => {
   return { runtimePresent: window.__CODEX_GLASS__ != null };
 })()`;
 
-const MAIN_SELECTOR = 'main[data-app-shell-main-surface="default"]';
-
 export function readinessExpression(timeoutMs) {
-  // Finish before the CDP command timeout, so unsupported UI is a known result.
+  // The runtime installs its stylesheet and observes later React surfaces. It
+  // only needs the DOM hosts; waiting for the complete app shell exposes the
+  // native theme while React starts. Main matching remains strict in apply.
+  // Finish before the CDP command timeout, so an unavailable DOM is a known result.
   const waitMs = Math.max(1, timeoutMs - 250);
   return `(async () => {
     const deadline = Date.now() + ${waitMs};
     do {
-      if (document.head && document.body && document.readyState !== 'loading' && document.querySelector(${JSON.stringify(MAIN_SELECTOR)})) return { ready: true };
+      if (document.head && document.body) return { ready: true };
       await new Promise(resolve => setTimeout(resolve, Math.min(50, Math.max(1, deadline - Date.now()))));
     } while (Date.now() < deadline);
     return { ready: false };
@@ -50,7 +51,9 @@ export function applyExpression(runtimeSource, timeoutMs) {
       do {
         if (window.__CODEX_GLASS__ !== runtime) { reason = 'The skin runtime was replaced during verification.'; break; }
         status = runtime.getStatus();
-        if (status?.active === true && Number.isInteger(status?.matched?.main) && status.matched.main > 0) return { applied: true, runtimePresent: true, status };
+        // A disabled skin still owns its settings entry. Loading must keep
+        // that controller available so the user can enable it in the app.
+        if ((status?.mounted === true || status?.active === true) && Number.isInteger(status?.matched?.main) && status.matched.main > 0) return { applied: true, runtimePresent: true, status };
         await new Promise(resolve => setTimeout(resolve, Math.min(50, Math.max(1, deadline - Date.now()))));
       } while (Date.now() < deadline);
     } catch {
@@ -97,12 +100,49 @@ function parseArgs(args) {
 
 function report(value) { process.stdout.write(`${JSON.stringify(value, null, 2)}\n`); }
 
+function isStartupContextError(error) {
+  return error?.method === 'Runtime.evaluate' && error.code === -32000 &&
+    /^(?:Execution context was destroyed|Cannot find default execution context)\.?$/.test(error.cdpMessage ?? '');
+}
+
+async function waitForMountHosts(client, target, args, findTarget) {
+  const deadline = performance.now() + args.timeoutMs;
+  const notReady = () => new Error('The Codex document head and body did not appear within the wait limit. The interface may be unsupported or still loading; no skin was applied.');
+  while (performance.now() < deadline) {
+    const remaining = Math.max(1, Math.floor(deadline - performance.now()));
+    try {
+      let timer;
+      let readiness;
+      try {
+        readiness = await Promise.race([
+          client.evaluate(readinessExpression(remaining)),
+          new Promise((_, reject) => { timer = setTimeout(() => reject(notReady()), remaining); }),
+        ]);
+      } finally { clearTimeout(timer); }
+      if (!readiness?.ready || performance.now() >= deadline) throw notReady();
+      return;
+    } catch (error) {
+      // Navigation can destroy a read-only wait before the DOM hosts load.
+      // Only this pre-injection check is safe to repeat, within its original limit.
+      if (!isStartupContextError(error)) throw error;
+      const beforeWait = deadline - performance.now();
+      if (beforeWait <= 0) throw notReady();
+      await new Promise(resolve => setTimeout(resolve, Math.min(50, beforeWait)));
+      const beforeDiscovery = deadline - performance.now();
+      if (beforeDiscovery <= 0) throw notReady();
+      const currentTarget = await findTarget({ ...args, timeoutMs: Math.max(1, Math.floor(beforeDiscovery)), waitForMain: false });
+      if (currentTarget.id !== target.id) throw new Error('The main renderer changed during startup; no skin was applied.');
+    }
+  }
+  throw notReady();
+}
+
 export async function runCommand(args, {
   runtimeSource,
   findTarget = findMainTarget,
   connect = (url, options) => CdpClient.connect(url, options),
 } = {}) {
-  const target = await findTarget(args);
+  const target = await findTarget({ ...args, waitForMain: args.command === 'apply' });
   let client = await connect(target.webSocketDebuggerUrl, args);
   let mutationStarted = false;
   try {
@@ -117,8 +157,7 @@ export async function runCommand(args, {
     try {
       if (args.command === 'apply') {
         if (typeof runtimeSource !== 'string' || !runtimeSource.trim()) throw new Error('The skin runtime bundle is empty.');
-        const readiness = await client.evaluate(readinessExpression(args.timeoutMs));
-        if (!readiness?.ready) throw new Error('The Codex main surface did not appear within the wait limit. The interface may be unsupported or still loading; no skin was applied.');
+        await waitForMountHosts(client, target, args, findTarget);
         mutationStarted = true;
         const state = await client.evaluate(applyExpression(runtimeSource, args.timeoutMs));
         if (!state?.applied) return { exitCode: 1, result: { command: 'apply', targetId: target.id, outcome: 'incompatible', ...state } };
@@ -134,7 +173,7 @@ export async function runCommand(args, {
       client = null;
       let verification;
       try {
-        const currentTarget = await findTarget(args);
+        const currentTarget = await findTarget({ ...args, waitForMain: false });
         if (currentTarget.id !== target.id) throw new Error('The main renderer changed; its previous state cannot be verified.');
         client = await connect(currentTarget.webSocketDebuggerUrl, args);
         verification = await client.evaluate(STATUS_EXPRESSION);

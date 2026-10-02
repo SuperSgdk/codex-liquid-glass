@@ -10,9 +10,15 @@ export interface DecorationOptions {
   critters: boolean
   /** Permit pointer repulsion of the particle mark. Defaults to true. */
   pointer: boolean
+  /** Entrance replay applies only when a new particle mark is mounted. */
+  replayOnMount?: boolean
 }
 
 export interface DecorationHandle {
+  /** Retarget the same decoration nodes when a different chat column mounts. */
+  setAnchor: (anchor: HTMLElement | null) => void
+  /** Play the explicit chat-change burst using the retained renderer. */
+  replayAssembly: () => void
   update: (options: Partial<DecorationOptions>) => void
   dispose: () => void
 }
@@ -29,6 +35,7 @@ export function mountDecorations(
 ): DecorationHandle {
   let current: DecorationOptions = { dark: false, whale: true, critters: true, pointer: true, ...options }
   let disposed = false
+  let anchor: HTMLElement | null = mainAnchor
   let mark: ParticleMarkHandle | null = null
   let critters: HTMLElement | null = null
   const layer = document.createElement('div')
@@ -49,8 +56,8 @@ export function mountDecorations(
       critters.remove()
       critters = null
     }
-    if (current.whale && mark === null) {
-      mark = mountParticleMark(layer, mainAnchor, current.dark, current.pointer)
+    if (current.whale && mark === null && anchor !== null) {
+      mark = mountParticleMark(layer, anchor, current.dark, current.pointer, { replayOnMount: current.replayOnMount })
     } else if (!current.whale && mark !== null) {
       mark.dispose()
       mark = null
@@ -61,6 +68,16 @@ export function mountDecorations(
   apply()
 
   return {
+    replayAssembly: (): void => {
+      if (!disposed && anchor !== null) mark?.replayAssembly()
+    },
+    setAnchor: (next): void => {
+      if (disposed || next === anchor) return
+      anchor = next
+      layer.style.display = next === null ? 'none' : ''
+      mark?.setAnchor(next)
+      if (next !== null && mark === null) apply()
+    },
     update: (next): void => {
       if (disposed) return
       current = { ...current, ...next }
@@ -71,6 +88,7 @@ export function mountDecorations(
       disposed = true
       mark?.dispose()
       mark = null
+      anchor = null
       critters = null
       layer.remove()
     },

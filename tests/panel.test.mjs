@@ -85,9 +85,10 @@ function fixture(t) {
   const originalInput = document.createElement('textarea');
   document.body.append(originalInput);
   originalInput.focus();
-  const settings = { scheme: 'system', blur: 20, frost: 7, fluidHue: 320, fluidDepth: 25,
+  const settings = { enabled:true, scheme: 'system', blur: 20, frost: 7, fluidHue: 320, fluidDepth: 25,
     bgBrightness: 50, whale: true, critters: true, mesh: true, spotlight: true, press: true };
-  const mounted = mountSettingsPanel(() => {}, () => settings, { showTrigger: false });
+  const changes=[];
+  const mounted = mountSettingsPanel(value => { changes.push(value); Object.assign(settings,value); }, () => settings, { showTrigger: false });
   const panel = document.body.children.find(node => node.getAttribute('role') === 'dialog');
   const close = panel.children[0].children.find(node => node.getAttribute('aria-label') === '关闭皮肤设置');
   t.after(() => {
@@ -97,7 +98,7 @@ function fixture(t) {
       else delete globalThis[key];
     }
   });
-  return { document, originalInput, panel, close, mounted };
+  return { document, originalInput, panel, close, mounted, changes, settings };
 }
 
 test('打开面板聚焦关闭键，再次打开仍恢复最初的聊天焦点', t => {
@@ -182,4 +183,20 @@ test('卸载面板恢复聊天焦点，并移除全局快捷键监听', t => {
   assert.equal(afterDispose.defaultPrevented, false);
   assert.equal(panel.hidden, true);
   assert.equal(document.activeElement, originalInput);
+});
+
+test('总开关关闭后仍能通过同一面板开启，恢复参数不擅自启用皮肤', t => {
+  const { panel,mounted,settings,changes }=fixture(t);
+  const enable=panel.children.flatMap(row=>row.children).find(node=>node.getAttribute('aria-label')==='启用液态玻璃皮肤');
+  assert.equal(enable.checked,true);
+  enable.checked=false; enable.dispatchEvent(new Event('change')); mounted.sync();
+  assert.deepEqual(changes.at(-1),{enabled:false});
+  assert.equal(settings.enabled,false);
+  settings.fluidHue=123;
+  const reset=panel.children.find(node=>node.className==='cg-reset');
+  reset.dispatchEvent(new Event('click')); mounted.sync();
+  assert.equal(settings.enabled,false);
+  assert.equal(settings.fluidHue,320);
+  enable.checked=true; enable.dispatchEvent(new Event('change')); mounted.sync();
+  assert.equal(settings.enabled,true);
 });

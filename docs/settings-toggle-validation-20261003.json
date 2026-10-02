@@ -1,0 +1,60 @@
+{
+  "date": "2026-10-03",
+  "msixVersion": "26.930.2377.0",
+  "automatedChecks": {
+    "command": "pnpm run check",
+    "tests": 113,
+    "passed": 113,
+    "failed": 0
+  },
+  "nativeDesktop": {
+    "connection": "existing loopback debugger; no exit or restart",
+    "composerRadiusCssPx": 26,
+    "sidebarRadiusCssPx": 26,
+    "disabledNativeRadiusCssPx": 22,
+    "dimensionsUnchanged": true,
+    "disabled": {
+      "mounted": true,
+      "active": false,
+      "rendererRunning": false,
+      "visualHosts": 0,
+      "nativeMarks": 0
+    },
+    "settingsRestoredAfterTest": true,
+    "settingsPagePlacementVerifiedInNativeWindow": false,
+    "fullChatInteractionVerified": false,
+    "settingsColumnVerifiedFromInstalledBundle": true,
+    "settingsColumnSelector": "[data-density][class~=\"group/settings\"]",
+    "finalState": "mounted and enabled; latest runtime loaded"
+  },
+  "browserFixture": {
+    "settingEntryCount": 1,
+    "toggleOffAndOn": true,
+    "disabledAdjustmentPanelUsable": true,
+    "enabledStatePersistsOnReload": true,
+    "viewportOverflow": false,
+    "disabledStatePersistsOnReload": true,
+    "disabledReloadAllocatesVisualHosts": false,
+    "timeoutRecovery": "Read the resulting disabled state first, then restored the original stored preference and reloaded the task-owned fixture.",
+    "correctNativeColumnInFixture": true,
+    "preferenceRestoredAfterTest": true
+  },
+  "desktopEntry": {
+    "ownerAuthorized": true,
+    "installed": true,
+    "name": "Codex 液态玻璃",
+    "nativeProfileReused": true,
+    "hiddenCompanionShell": true,
+    "existingInstanceReuseVerified": true,
+    "coldStartVerified": false,
+    "originalStoreEntryAutoLoadsSkin": false,
+    "actualShortcutExecutionVerified": true,
+    "nativeProcessSetUnchanged": true,
+    "originalEntryPreserved": true
+  },
+  "publication": {
+    "committed": false,
+    "pushed": false,
+    "ownerVisualAcceptancePending": true
+  }
+}

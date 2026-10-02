@@ -5,8 +5,8 @@
  */
 /**
  * The three GLSL programs below were independently written for this portable
- * renderer in 2026. A small diffusing velocity texture bends layered sine
- * contours, which blend the existing three-color palette continuously.
+ * renderer in 2026. A diffusing velocity texture bends a pair of smooth fields
+ * and cross-coupled waves, recreating the upstream slow, broad liquid folds.
  * The TypeScript WebGL mounting, uniform wiring and parameter API retain the
  * AGPL source project's attribution above. Reduced motion uses static frames
  * and redraws only when parameters or size change.
@@ -124,46 +124,63 @@ uniform float u_noiseBoost;
 uniform float u_swirlBoost;
 out vec4 surfaceColor;
 
+float latticeValue(vec2 cell) {
+  return fract(sin(dot(cell, vec2(39.71, 17.13))) * 19417.731);
+}
+
+float smoothField(vec2 point) {
+  vec2 cell = floor(point);
+  vec2 fraction = fract(point);
+  vec2 curve = fraction * fraction * (3.0 - 2.0 * fraction);
+  return mix(mix(latticeValue(cell), latticeValue(cell + vec2(1.0, 0.0)), curve.x),
+             mix(latticeValue(cell + vec2(0.0, 1.0)), latticeValue(cell + vec2(1.0)), curve.x), curve.y);
+}
+
 void main() {
-  // Normalize to the canvas height so resizing preserves the contour aspect.
-  float aspect = u_resolution.x / max(u_resolution.y, 1.0);
-  vec2 centered = (surfaceUv * 2.0 - 1.0) * vec2(aspect, 1.0);
+  // Match the upstream CSS-pixel wavelength. Height-normalized coordinates
+  // changed the apparent scale whenever the Codex window was resized.
+  vec2 cssSize = u_resolution / max(u_pixelRatio, 1.0);
+  vec2 centered = (surfaceUv - 0.5) * cssSize * (0.0005 + 0.006 * u_scale);
   float angle = u_rotation * 1.57079632679;
   vec2 domain = vec2(centered.x * cos(angle) - centered.y * sin(angle),
                      centered.x * sin(angle) + centered.y * cos(angle));
-  domain = domain * (1.35 + u_scale * 2.8 + u_shapeScale * 3.0) + u_offset * 2.0;
+  domain += vec2(0.5) + u_offset;
 
   vec3 wake = texture(u_flowmap, surfaceUv).rgb;
   vec2 motion = wake.gb * 2.0 - 1.0;
-  domain += motion * wake.r * (0.35 + max(u_distortBoost, 0.0) * 0.2);
-  float amplitude = 0.12 + max(u_distortion, 0.0) * 1.4
-    + max(u_swirl, 0.0) * 0.2 + wake.r * max(u_swirlBoost, 0.0) * 0.08;
-  int layers = int(clamp(u_swirlIterations, 1.0, 24.0));
-  // Each layer bends across a new direction; geometric falloff keeps it soft.
-  for (int layer = 0; layer < 24; layer++) {
-    if (layer >= layers) break;
-    float index = float(layer);
-    vec2 direction = vec2(cos(index * 1.37), sin(index * 1.37));
-    float phase = dot(domain, direction) * (1.0 + index * 0.48)
-      + index * 0.91 + u_time * (0.22 + index * 0.015);
-    domain += vec2(-direction.y, direction.x) * sin(phase) * amplitude;
-    amplitude *= 0.68;
-  }
-  float fineWave = sin(domain.x * 3.1 + domain.y * 2.3 - u_time * 0.4);
-  domain += vec2(fineWave, -fineWave) * wake.r * max(u_noiseBoost, 0.0) * 0.045;
+  float phase = u_time * 0.5;
+  // One smooth field chooses direction, the other controls displacement.
+  // The prior multi-octave density field made separate cloudy color islands.
+  float heading = smoothField(domain + vec2(phase)) * 6.28318530718;
+  float strength = smoothField(domain * 2.0 - vec2(phase));
+  float bend = 4.0 * (max(u_distortion, 0.0) + wake.r * max(u_distortBoost, 0.0));
+  domain += vec2(cos(heading), sin(heading)) * strength * bend;
+  domain += motion * wake.r * 0.15;
+  float localHeading = smoothField(domain * 2.0 + vec2(phase * 1.5)) * 6.28318530718;
+  domain += vec2(cos(localHeading), sin(localHeading)) * wake.r * max(u_noiseBoost, 0.0);
 
-  float band = domain.x * 0.65 + domain.y * 0.42
-    + sin(domain.y * 0.85 - u_time * 0.18) * 0.3;
-  float bloom = 0.5 + sin(band + sin(domain.x * 0.73 + u_time * 0.17) * 0.35) * 0.5;
-  float wash = 0.5 + sin(domain.y * 0.74 - domain.x * 0.36 + u_time * 0.11 + u_shape * 0.07) * 0.5;
-  float density = clamp(bloom * 0.7 + wash * 0.3 + (u_proportion - 0.5) * 0.65, 0.0, 1.0);
-  float pixelFeather = 2.0 * u_pixelRatio / max(min(u_resolution.x, u_resolution.y), 1.0);
-  float feather = max(0.018, pixelFeather) + clamp(u_softness, 0.0, 1.0) * 0.22;
-  float midWeight = smoothstep(0.12 - feather, 0.58 + feather, density);
-  float bloomWeight = smoothstep(0.50 - feather, 0.94 + feather, density);
+  // Alternating horizontal and vertical shears fold the same continuous
+  // stream. Each pass sees the previous shear, with a harmonic falloff.
+  float amplitude = clamp(u_swirl, 0.0, 2.0) + wake.r * max(u_swirlBoost, 0.0);
+  int layers = int(ceil(clamp(u_swirlIterations, 1.0, 30.0)));
+  for (int layer = 0; layer < 30; layer++) {
+    if (layer >= layers) break;
+    float harmonic = float(layer + 1);
+    float gain = amplitude / harmonic;
+    domain.x += gain * cos(domain.y * harmonic * 1.5 + phase);
+    domain.y += gain * cos(domain.x * harmonic + phase);
+  }
+
+  // Color follows the folded wave rather than the noise density. Preserve the
+  // upstream bright -> wash -> neutral stop order and its broad soft edges.
+  vec2 wave = domain * (0.5 + 3.5 * u_shapeScale);
+  float balance = clamp(u_proportion, 0.0, 1.0) - 0.5;
+  float density = 0.5 + 0.5 * sin(wave.x) * cos(wave.y)
+    + 0.48 * sign(balance) * sqrt(abs(balance));
+  float edge = 0.35 * (1.0 - clamp(u_softness, 0.002, 1.0));
   vec3 color = u_color1.rgb;
-  if (u_colorCount > 1.0) color = mix(u_color2.rgb, u_color1.rgb, bloomWeight);
-  if (u_colorCount > 2.0) color = mix(mix(u_color3.rgb, u_color2.rgb, midWeight), u_color1.rgb, bloomWeight);
+  if (u_colorCount > 1.0) color = mix(color, u_color2.rgb, smoothstep(edge, 0.7 - edge, density));
+  if (u_colorCount > 2.0) color = mix(color, u_color3.rgb, smoothstep(0.3 + edge, 1.0 - edge, density));
   surfaceColor = vec4(color, 1.0);
 }
 `

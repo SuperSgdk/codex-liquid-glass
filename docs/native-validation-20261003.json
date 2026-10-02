@@ -1,0 +1,171 @@
+{
+  "date": "2026-10-03",
+  "msixVersion": "26.930.2377.0",
+  "automatedChecks": { "command": "pnpm run check", "tests": 80, "passed": 80, "failed": 0 },
+  "nativeDesktop": {
+    "connection": "existing loopback debugger; no app restart",
+    "mainWindowSelected": true,
+    "avatarOverlayExcluded": true,
+    "avatarOverlaySkinPresent": false,
+    "applied": true,
+    "renderer": "webgl2",
+    "fluid": {
+      "recipe": "DSH CSS-pixel wavelength, slow phase, harmonic shears and ordered soft color blending; independent lattice pattern",
+      "defaultClockPerSecond": 0.14,
+      "ownerFeedback": "improved; retain this fluid version",
+      "liveDesktopFrameRateMeasured": false
+    },
+    "shark": {
+      "pointCount": 5745,
+      "positionsAndColorsUnchanged": true,
+      "idleMotion": "whole mark translation; fixed relative point spacing",
+      "perPointJitter": false,
+      "dropShadow": false,
+      "decorationLayerOpacity": 1,
+      "holderOpacity": 0.76,
+      "uniformPointAlpha": 0.9,
+      "maximumHolderCssPx": 504,
+      "sizeRequest": "1.2 times the original 420px holder; narrow columns fit the visible contour",
+      "retainedCanvasAcrossChats": true,
+      "assemblyReplayRemoved": false,
+      "assemblyReplay": {
+        "trigger": "different nonempty visible conversation identity; first load, same chat, settings and transient route gaps do not replay",
+        "durationMs": 900,
+        "burstMs": 180,
+        "returnMs": 720,
+        "renderer": "retained WebGL2 point buffer; one batch per frame",
+        "preheat": "idle shader compilation, one point upload and one hidden draw before replay",
+        "reducedMotion": "skip replay and GPU preparation",
+        "fallback": "finite Canvas2D animation throttled to 15fps; cached bitmap restored at completion",
+        "nativeSingleReplay": {
+          "method": "manual replay in existing native renderer, normal requestAnimationFrame; no navigation",
+          "shaderCompiles": 0,
+          "bufferUploads": 0,
+          "batchDraws": 150,
+          "sampledCallbacks": 175,
+          "callbackIntervalMs": { "median": 6.1, "p95": 6.2, "maximum": 6.4 },
+          "canvasIdentityRetained": true,
+          "assemblyEnded": true,
+          "nativeNavigationWallTimeMeasured": false
+        }
+      },
+      "idleRenderer": "cached bitmap with CSS whole-mark drift; no point simulation loop",
+      "referenceLook": "owner requested dark overall appearance; skin scheme persisted as dark",
+      "nativeScheme": "dark",
+      "nativeViewport": { "cssWidth": 1707, "cssHeight": 1019, "devicePixelRatio": 1.5 },
+      "nativeHolder": { "cssWidth": 504, "cssHeight": 504, "canvasWidth": 756, "canvasHeight": 756 },
+      "chatAnchor": "visible thread footer's main-content layout; home/settings fall back to visible main",
+      "nativeRightPanelOverlapRemoved": true,
+      "hiddenStartFullContour": true,
+      "nativeScreenshotReviewed": true,
+      "ownerReview": "awaiting feedback on 1.2x size and retained burst/assembly during actual chat navigation"
+    },
+    "composer": {
+      "nativeRadiusPx": 22,
+      "glassRadiusPx": 22,
+      "glassBoundsMatchNativeSurface": true,
+      "footerOpaqueFillRemoved": true,
+      "geometryAndFocusUnchanged": true,
+      "publicImage": "assets/native-composer.png",
+      "publicImageScope": "empty native input surface only; no conversation or workspace list"
+    },
+    "glassInteraction": {
+      "sidebarRadiusPx": 26,
+      "pressureRecipe": "DSH perspective 800px, maximum 0.0175rad, 0.1s transition",
+      "nativeControlsTransformed": false,
+      "independentGlassSurfacesTransformed": true,
+      "constantLayoutPollingRemoved": true,
+      "hiddenChatMaterialsSkipped": true,
+      "foregroundHoverFeel": "awaiting owner feedback"
+    },
+    "nativeSettingsVisualReview": "awaiting owner feedback",
+    "chatSendTested": false,
+    "coldStartRetested": false
+  },
+  "isolatedBrowserFixture": {
+    "sharkPerformance": {
+      "method": "real browser fixture, controlled callbacks; current version tested at 60Hz with 20 different conversation markers",
+      "baseline": { "idleFrames": 120, "idlePointDrawCalls": 689400, "chatSwitches": 20, "canvasIdentityRetained": false, "switchPointDrawCalls": 344700 },
+      "previousWithoutAssemblyReplay": { "idleFrames": 120, "idlePointDrawCalls": 0, "idleBitmapCopies": 0, "chatSwitches": 20, "canvasIdentityRetained": true, "switchPointDrawCalls": 0, "switchBitmapCopies": 0 },
+      "updated": {
+        "idleFramesBeforeAndAfter": 120,
+        "idlePointDrawCalls": 0,
+        "idleBitmapCopies": 0,
+        "idleGpuDrawCalls": 0,
+        "preheatShaderCompiles": 2,
+        "preheatPointUploads": 1,
+        "preheatHiddenDraws": 1,
+        "chatSwitches": 20,
+        "canvasIdentityRetained": true,
+        "switchPointDrawCalls": 0,
+        "switchBitmapCopies": 0,
+        "switchGpuBatchDrawCalls": 1107,
+        "switchShaderCompiles": 0,
+        "switchPointUploads": 0,
+        "sameChatAndSameChatRouteRestoreDrawCalls": 0,
+        "animationEnded": true,
+        "gpuStagesVisuallyReviewed": [0, 0.2, 0.75, 1]
+      },
+      "initialCachedBitmapCopies": 1,
+      "cachedMainVisibilityCases": ["hidden", "opacity:0", "visibility:hidden"],
+      "visibleComposerAndCanvasRetainedInAllCases": true,
+      "routeGapHidesDecorationAndRetainsCanvas": true,
+      "routeGapRestoreRetainsCanvas": true,
+      "focusUnchanged": true,
+      "normalRuntimeRestored": true,
+      "nativeNavigationWallTimeMeasured": false
+    },
+    "glassInteraction": {
+      "composerLeftRotateYRad": -0.0147,
+      "composerRightRotateYRad": 0.0147,
+      "sidebarTopRotateXRad": 0.0147,
+      "sidebarBottomRotateXRad": -0.0147,
+      "sidebarRadiusPx": 26,
+      "leaveReturnsToNeutral": true
+    },
+    "composerControls": "attachment and permissions left; model, voice and send right",
+    "settingsPage": { "opaquePageFillRemoved": true, "glassCards": 2, "nativePage": false },
+    "sharkPlacement": {
+      "simulatedRightPanelCssWidth": 320,
+      "chatCenterErrorCssPx": 0.3334,
+      "settingsFallbackCenterErrorCssPx": 0.3334,
+      "backgroundResizeNote": "Chrome suspends ResizeObserver delivery in the hidden fixture; resize event dispatched for the geometry check"
+    },
+    "fluid": {
+      "method": "same-size, same-palette real WebGL rendering with controlled clocks; local-only DSH reference",
+      "intervalSeconds": 3,
+      "sampleWidth": 256,
+      "sampleHeight": 140,
+      "viewportCssWidth": 1707,
+      "viewportCssHeight": 932,
+      "devicePixelRatio": 1.5,
+      "light": {
+        "meanChannelChange": 7.077139136904762,
+        "changedChannelFractionAbove3": 0.44972098214285716,
+        "meanLuminance": 201.65033482142317,
+        "referenceMeanLuminance": 206.58882998511777,
+        "luminanceStdDev": 40.35565742184722,
+        "referenceLuminanceStdDev": 38.227858529683346
+      },
+      "dark": {
+        "meanChannelChange": 3.7852027529761907,
+        "changedChannelFractionAbove3": 0.3206380208333333,
+        "meanLuminance": 43.598883928570686,
+        "referenceMeanLuminance": 40.34259672619047,
+        "luminanceStdDev": 19.766012351764882,
+        "referenceLuminanceStdDev": 20.454791172188795
+      },
+      "liveDesktopFrameRateMeasured": false
+    },
+    "galleryScreenshotMode": "reduced motion",
+    "previewNormalAnimationRestored": true
+  },
+  "publicFileAudit": { "worktree": true, "filesScanned": 65, "findings": 0, "diffWhitespaceCheckPassed": true },
+  "limits": [
+    "Browser fixture images are layout examples, not full native desktop screenshots.",
+    "The reference comparison checks the visual recipe and animation; independently generated noise means patterns are not pixel-identical.",
+    "The launcher startup race is covered by protocol fixtures; the current desktop app was not exited or restarted.",
+    "Native settings appearance and end-to-end chat behavior still require owner review.",
+    "Native callback timings cover one manual replay without navigation, not a benchmark of actual chat loading or guaranteed frame rate."
+  ]
+}

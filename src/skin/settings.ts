@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 export interface SkinSettings {
+  enabled: boolean;
   scheme: 'system' | 'light' | 'dark';
   blur: number;
   frost: number;
@@ -15,6 +16,7 @@ export interface SkinSettings {
 
 export const SETTINGS_KEY = 'codex.glass.skin.v1';
 export const DEFAULT_SETTINGS: SkinSettings = {
+  enabled: true,
   scheme: 'system', blur: 20, frost: 7, fluidHue: 320, fluidDepth: 25,
   bgBrightness: 50, whale: true, critters: true, mesh: true, spotlight: true, press: true,
 };
@@ -28,7 +30,7 @@ export function normalizeSettings(input: Partial<SkinSettings> = {}, previous = 
     if (typeof value !== 'number' || !Number.isFinite(value)) throw new TypeError(`${key} must be a finite number`);
     (result as any)[key] = Math.min(range[1], Math.max(range[0], value));
   }
-  for (const key of ['whale', 'critters', 'mesh', 'spotlight', 'press'] as const) {
+  for (const key of ['enabled', 'whale', 'critters', 'mesh', 'spotlight', 'press'] as const) {
     if (input[key] === undefined) continue;
     if (typeof input[key] !== 'boolean') throw new TypeError(`${key} must be boolean`);
     result[key] = input[key]!;

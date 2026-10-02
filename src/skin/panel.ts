@@ -49,12 +49,13 @@ export function mountSettingsPanel(onChange: (value: Partial<SkinSettings>) => v
     input.addEventListener('change', () => onChange({ [key]: input.checked }));
     row.append(text, input); panel.append(row); controls.set(key, { input });
   }
+  toggle('enabled', '启用液态玻璃皮肤');
   group('玻璃材质'); knob('blur', '玻璃模糊度', 0, 40, .5, 'px'); knob('frost', '磨砂度', 0, 100, 1, '%');
   group('流体背景'); knob('fluidHue', '色调', 0, 360, 1, '°'); knob('fluidDepth', '颜色深浅', 0, 100, 1, '%'); knob('bgBrightness', '背景亮度', 0, 100, 1, '%');
   group('环境装饰'); toggle('whale', '鲨鱼粒子图形'); toggle('critters', '气泡与浮游'); toggle('mesh', '网状交互');
-  group('悬停效果'); toggle('spotlight', '鼠标辉光'); toggle('press', '玻璃按压光影');
+  group('悬停效果'); toggle('spotlight', '鼠标辉光'); toggle('press', '悬停压倾');
   const reset = document.createElement('button'); reset.type = 'button'; reset.className = 'cg-reset'; reset.textContent = '恢复原版默认参数';
-  reset.addEventListener('click', () => onChange({ ...DEFAULT_SETTINGS })); panel.append(reset);
+  reset.addEventListener('click', () => onChange({ ...DEFAULT_SETTINGS, enabled: getSettings().enabled })); panel.append(reset);
   function sync() {
     const settings = getSettings(); scheme.value = settings.scheme;
     for (const [key, { input, number }] of controls) {

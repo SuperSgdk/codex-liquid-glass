@@ -1,4 +1,5 @@
 /* These rules describe the fixture's native layout, independently of the skin. */
+:root { --color-surface:#fafafa; --color-surface-elevated-secondary:#fbfbfb; }
 * { box-sizing: border-box; }
 html, body { margin: 0; width: 100%; height: 100%; overflow: hidden; }
 body { font-family: "Segoe UI", "Microsoft YaHei", sans-serif; font-size: 14px; color: var(--app-color-text-foreground, #32363c); background: #edf4f7; }
@@ -17,7 +18,8 @@ button:focus-visible, textarea:focus-visible { outline: 2px solid #497dc1; outli
 .window-navigation { display: flex; gap: 7px; }
 .menu-items { display: flex; gap: 13px; }
 .menu-items button { padding: 4px 5px; border-radius: 5px; color: var(--app-color-text-secondary, #737980); }
-.fixture-settings { margin-left: auto; padding: 4px 10px; font-size: 11px; color: var(--app-color-text-secondary, #737980); border: 1px solid rgba(118,128,139,.2); border-radius: 6px; white-space: nowrap; }
+.fixture-tools { display:flex; gap:8px; margin-left:auto; }
+.fixture-settings { padding: 4px 10px; font-size: 11px; color: var(--app-color-text-secondary, #737980); border: 1px solid rgba(118,128,139,.2); border-radius: 6px; white-space: nowrap; }
 [data-app-shell-frame] { flex: 1; min-height: 0; width: 100%; display: flex; }
 .app-rail { width: 60px; flex: 0 0 60px; display: flex; flex-direction: column; align-items: center; gap: 10px; padding: 12px 6px 14px; }
 .rail-button { position: relative; display: flex; align-items: center; justify-content: center; flex: 0 0 42px; width: 42px; height: 42px; border-radius: 12px; color: var(--app-color-text-secondary, #747a80); }
@@ -57,18 +59,42 @@ h1 { font-weight: 500; font-size: 14px; line-height: 20px; margin: 1px 0 0; whit
 .assistant-message { line-height: 1.9; }
 .assistant-message p { margin: 0 0 16px; }
 .quiet { color: var(--app-color-text-secondary, #737980); font-size: 12px; }
-.composer-dock { flex: none; width: min(812px, 100%); align-self: center; padding: 0 26px 24px; }
-.composer-meta { display: flex; align-items: center; gap: 18px; font-size: 11px; color: var(--app-color-text-secondary, #737980); padding: 0 4px 9px; }
-[data-codex-composer-root] { position: relative; background: #f8f9fb; border: 1px solid rgba(118,128,139,.24); border-radius: 22px; }
-[data-composer-surface-variant] { padding: 12px 13px 9px; }
-.composer-input { display: block; width: 100%; height: 60px; min-height: 60px; resize: none; border: 0; background: transparent; outline: none; padding: 1px 4px; line-height: 1.7; }
+.composer-dock { position:relative; flex: none; width: min(856px, 100%); align-self: center; padding: 0 26px 18px; }
+.fixture-footer-scrim { position:absolute; inset:0 -80px; background:var(--color-surface); pointer-events:none; }
+[data-codex-composer-root] { position:relative; min-width:0; }
+.composer-frame-stack { display:flex; flex-direction:column; gap:8px; position:relative; }
+[data-composer-surface-variant] { position:relative; border-radius:22px; background:var(--color-surface-elevated-secondary); }
+[data-composer-body] { position:relative; display:flex; flex-direction:column; padding:12px 13px 9px; }
+.composer-input { display: block; width: 100%; height: 54px; min-height: 54px; resize: none; border: 0; background: transparent; outline: none; padding: 1px 0; line-height: 1.7; }
 .composer-input::placeholder { color: var(--app-color-text-secondary, #737980); }
 .composer-tools { display: flex; align-items: center; gap: 6px; }
-.model-picker { display: inline-flex; align-items: center; gap: 6px; font-size: 11px; padding: 5px 6px; }
+.permission-picker { display:inline-flex; align-items:center; gap:6px; color:#e97725; font-size:12px; padding:5px 2px; }
+.permission-picker .icon { width:16px; height:16px; }
+.model-picker { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; padding: 5px 3px; }
+.model-effort { color:var(--app-color-text-secondary,#737980); }
 .model-picker .icon { width: 12px; height: 12px; }
 .composer-spacer { flex: 1; }
 .send-button { display: grid; place-items: center; width: 29px; height: 29px; border-radius: 50%; background: #39424a; color: #fff; padding: 6px; }
 .send-button .icon { width: 18px; height: 18px; }
+.settings-content { height:100%; min-height:0; overflow:auto; padding:48px 36px; background:var(--color-surface); }
+.settings-column { width:min(860px,100%); margin:0 auto; }
+.settings-column h1 { font-size:26px; font-weight:600; margin-bottom:44px; }
+.settings-column h2 { font-size:14px; margin:34px 0 18px; font-weight:600; }
+.rounded-2xl { border-radius:16px; }
+.border { border:1px solid rgba(118,128,139,.22); }
+.settings-card { background:var(--color-surface); padding:0 20px; }
+.settings-row { display:flex; align-items:center; justify-content:space-between; gap:24px; padding:22px 0; }
+.settings-row + .settings-row { border-top:1px solid rgba(118,128,139,.18); }
+.settings-row strong { font-size:14px; font-weight:500; }
+.settings-row p { margin:8px 0 0; color:var(--app-color-text-secondary,#737980); font-size:12px; }
+.settings-row button { display:flex; align-items:center; gap:8px; border:1px solid rgba(118,128,139,.25); padding:5px 9px; border-radius:8px; background:var(--color-surface-elevated-secondary); }
+.settings-row input { accent-color:#526fff; width:18px; height:18px; }
+.settings-example-note { color:var(--app-color-text-secondary,#737980); font-size:11px; margin-top:24px; }
+.settings-sidebar-title { margin:18px 20px; font-size:20px; }
+.settings-search { margin:0 13px 18px; width:calc(100% - 26px); padding:10px 14px; border-radius:24px; border:0; background:var(--color-surface-elevated-secondary); color:inherit; }
+.settings-nav { display:flex; flex-direction:column; gap:4px; padding:0 13px; }
+.settings-nav button { text-align:left; padding:10px 12px; border-radius:10px; }
+.settings-nav .active { background:rgba(111,119,125,.15); }
 #runtime-error { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); z-index: 2147483647; background: #fff1ed; color: #813624; padding: 16px; border: 1px solid #d68f79; border-radius: 12px; max-width: 90vw; }
 @media (max-width: 900px) {
   aside[data-app-shell-left-panel-appearance] { width: 246px; flex-basis: 246px; }

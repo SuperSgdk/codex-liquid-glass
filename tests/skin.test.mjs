@@ -17,6 +17,9 @@ test('滑杆边界和坏的持久设置不会破坏原生界面', () => {
   assert.equal(normalizeSettings({fluidHue:-1}).fluidHue,0);
   assert.throws(()=>normalizeSettings({fluidHue:NaN}));
   assert.throws(()=>normalizeSettings({mesh:'true'}));
+  assert.throws(()=>normalizeSettings({enabled:'false'}));
+  assert.equal(readSettings({getItem:()=>'{"enabled":false}'}).enabled,false);
+  assert.equal(readSettings({getItem:()=>'{"fluidHue":123}'}).enabled,true);
   assert.deepEqual(readSettings({getItem:()=>'{broken'}),DEFAULT_SETTINGS);
   assert.deepEqual(readSettings({getItem:()=>'{"scheme":"invalid"}'}),DEFAULT_SETTINGS);
   let saved;

@@ -3,6 +3,7 @@ import { createHash } from 'node:crypto';
 import { createServer } from 'node:http';
 import { test } from 'node:test';
 import { CdpClient, findMainTarget, selectMainTarget } from '../scripts/cdp-client.mjs';
+import { runCommand } from '../scripts/codex-skin.mjs';
 
 // A disposable protocol peer on its own ephemeral port. It never evaluates
 // expressions and does not connect to, start, or inspect a real Codex process.
@@ -11,8 +12,10 @@ async function makeDebuggerFixture(onCommand = () => {}) {
   const commands = [];
   const waiters = new Set();
   let targets = [];
+  let discoveryCount = 0;
   const server = createServer((request, response) => {
     if (request.url !== '/json/list') { response.writeHead(404).end(); return; }
+    discoveryCount++;
     response.writeHead(200, { 'content-type': 'application/json' });
     response.end(JSON.stringify(targets));
   });
@@ -86,6 +89,7 @@ async function makeDebuggerFixture(onCommand = () => {}) {
   targets = [mainTarget];
   return {
     port, mainTarget, commands,
+    get discoveryCount() { return discoveryCount; },
     setTargets(value) { targets = value; },
     waitForCommands(count) {
       if (commands.length >= count) return Promise.resolve();
@@ -112,6 +116,9 @@ test('HTTP discovery selects the native main page while ignoring browser, iframe
     { ...fixture.mainTarget, id: 'WORKER', type: 'worker' },
     { ...fixture.mainTarget, id: 'DETACHED', url: 'app://-/detached-window.html' },
     { ...fixture.mainTarget, id: 'PET', url: 'app://-/avatar-overlay.html' },
+    { ...fixture.mainTarget, id: 'AVATAR', url: 'app://-/index.html?initialRoute=%2Favatar-overlay' },
+    { ...fixture.mainTarget, id: 'AVATAR_QUERY', url: 'app://-/index.html?initialRoute=%2Favatar-overlay%3Ftest%3D1' },
+    { ...fixture.mainTarget, id: 'DETACHED_ROUTE', url: 'app://-/index.html?initialRoute=%2Fdetached-window' },
     fixture.mainTarget,
   ]);
   const selected = await findMainTarget({ port: fixture.port });
@@ -124,6 +131,34 @@ test('HTTP discovery selects the native main page while ignoring browser, iframe
   await assert.rejects(findMainTarget({ port: fixture.port }), /exactly one Codex main renderer, found 2/);
   fixture.setTargets([{ ...fixture.mainTarget, type: 'iframe' }]);
   await assert.rejects(findMainTarget({ port: fixture.port }), /found 0/);
+});
+
+test('apply discovery waits for the main window when only the avatar overlay is ready', async t => {
+  const fixture = await makeDebuggerFixture();
+  t.after(() => fixture.dispose());
+  const avatar = { ...fixture.mainTarget, id: 'AVATAR', url: 'app://-/index.html?initialRoute=%2Favatar-overlay' };
+  fixture.setTargets([avatar]);
+  const timer = setTimeout(() => fixture.setTargets([avatar, fixture.mainTarget]), 40);
+  t.after(() => clearTimeout(timer));
+  const selected = await findMainTarget({ port: fixture.port, timeoutMs: 1000, waitForMain: true });
+  assert.equal(selected.id, 'FIXTURE_MAIN');
+  assert.equal(fixture.commands.length, 0, 'Startup discovery must not connect to or inject the overlay.');
+});
+
+test('an overlay alone never becomes the main target, even after the startup wait', async t => {
+  const fixture = await makeDebuggerFixture();
+  t.after(() => fixture.dispose());
+  fixture.setTargets([{ ...fixture.mainTarget, id: 'AVATAR', url: 'app://-/index.html?initialRoute=%2Favatar-overlay' }]);
+  await assert.rejects(findMainTarget({ port: fixture.port, timeoutMs: 80, waitForMain: true }), /found 0/);
+  assert.equal(fixture.commands.length, 0);
+});
+
+test('startup waiting still refuses ambiguous main windows', async t => {
+  const fixture = await makeDebuggerFixture();
+  t.after(() => fixture.dispose());
+  fixture.setTargets([fixture.mainTarget, { ...fixture.mainTarget, id: 'SECOND_MAIN' }]);
+  await assert.rejects(findMainTarget({ port: fixture.port, timeoutMs: 1000, waitForMain: true }), /found 2/);
+  assert.equal(fixture.commands.length, 0);
 });
 
 test('target selection refuses other origins, ports and debugger channels even when the page URL looks native', () => {
@@ -167,6 +202,64 @@ test('native WebSocket protocol correlates reversed responses and ignores unrela
     assert.equal(command.method, 'Runtime.evaluate');
     assert.equal(command.params.returnByValue, true);
     assert.equal(command.params.awaitPromise, true);
+    assert.equal(command.params.userGesture, false);
+  }
+});
+
+test('CDP protocol errors expose method and code without classifying JavaScript exceptions', async t => {
+  const fixture = await makeDebuggerFixture((command, send) => {
+    if (command.params.expression === 'fixture-context-destroyed') {
+      send({ id: command.id, error: { code: -32000, message: 'Execution context was destroyed.' } });
+    } else {
+      send({ id: command.id, result: { exceptionDetails: { text: 'Execution context was destroyed.' } } });
+    }
+  });
+  t.after(() => fixture.dispose());
+  const client = await CdpClient.connect(fixture.mainTarget.webSocketDebuggerUrl, { timeoutMs: 1000 });
+  t.after(() => client.close());
+  await assert.rejects(client.evaluate('fixture-context-destroyed'), error => {
+    assert.equal(error.code, -32000);
+    assert.equal(error.method, 'Runtime.evaluate');
+    assert.equal(error.cdpMessage, 'Execution context was destroyed.');
+    assert.equal(error.outcomeUnknown, undefined);
+    return true;
+  });
+  await assert.rejects(client.evaluate('fixture-JavaScript-exception'), error => {
+    assert.match(error.message, /Skin evaluation failed/);
+    assert.equal(error.code, undefined);
+    assert.equal(error.method, undefined);
+    assert.equal(error.cdpMessage, undefined);
+    return true;
+  });
+});
+
+test('the real discovery and CDP client recover startup context loss before one injection', async t => {
+  const mutationMarker = 'INTEGRATION_FIXTURE_MUTATION';
+  const fixture = await makeDebuggerFixture((command, send, commands) => {
+    if (commands.length === 1) {
+      send({ id: command.id, error: { code: -32000, message: 'Execution context was destroyed.' } });
+      return;
+    }
+    const value = command.params.expression.includes(mutationMarker)
+      ? { applied: true, runtimePresent: true, status: { mounted: true, active: true, matched: { main: 1 } } }
+      : { ready: true };
+    send({ id: command.id, result: { result: { value } } });
+  });
+  t.after(() => fixture.dispose());
+  // runCommand uses its real findMainTarget and CdpClient defaults. The only
+  // endpoint is this disposable loopback peer, which never executes the bundle.
+  const result = await runCommand({ command: 'apply', port: fixture.port, timeoutMs: 1000 }, {
+    runtimeSource: `/* ${mutationMarker} */`,
+  });
+  assert.equal(result.exitCode, 0);
+  assert.equal(result.result.applied, true);
+  assert.equal(result.result.targetId, fixture.mainTarget.id);
+  assert.equal(fixture.discoveryCount, 2, 'Context recovery must rediscover the same safe main target.');
+  assert.equal(fixture.commands.length, 3);
+  assert.equal(fixture.commands.filter(command => command.params.expression.includes(mutationMarker)).length, 1);
+  assert.ok(fixture.commands.slice(0, 2).every(command => !command.params.expression.includes(mutationMarker)));
+  for (const command of fixture.commands) {
+    assert.equal(command.method, 'Runtime.evaluate');
     assert.equal(command.params.userGesture, false);
   }
 });

@@ -1,0 +1,72 @@
+{
+  "date": "2026-10-02",
+  "target": "Codex desktop on Windows",
+  "msixVersion": "26.930.2377.0",
+  "appVersion": "26.930.21537",
+  "build": 12776,
+  "method": "Isolated offline evaluation of installed original share parser, variant guard, Zod schema and built-in code-theme registrations; no UI or app-config mutation",
+  "sources": [
+    {
+      "file": "app-shared-ac32c0d1413b.js",
+      "sha256": "08289e5e6a31013f044a61a0e856b68ee234b764a8b5a1f5e06bbeeb7a02f476"
+    },
+    {
+      "file": "app-initial-1da99842592d.js",
+      "sha256": "2ee70a24002c56d3ab02cb604e76a0820dba8137170b201cf634a665425daac2"
+    },
+    {
+      "file": "rolldown-runtime-2d059c5e81f4.js",
+      "sha256": "e0a79ad36c6ca1ffbc796c80aa5661803a9d1bc684e29d1587f48b4ba9a82714"
+    }
+  ],
+  "exports": [
+    {
+      "file": "dusk-purple-dark.txt",
+      "sha256": "59bb4f15f52f563f2489e67545b92522aca43a3e97e8e571cdd838c99d92e83d",
+      "nativeParserAccepted": true
+    },
+    {
+      "file": "dusk-purple-light.txt",
+      "sha256": "68b66991b310a05f4a6d53808d5f0035af323f2eb27d9a1c19d00e88c5f8965a",
+      "nativeParserAccepted": true
+    },
+    {
+      "file": "ice-blue-dark.txt",
+      "sha256": "febafdcebf9d738eab7470bb05dad52e091813254e4c87a02704526f05376940",
+      "nativeParserAccepted": true
+    },
+    {
+      "file": "ice-blue-light.txt",
+      "sha256": "92c762db3af7b87038b05689f83c07a7bbb83686b09787bfc810aede05f4c828",
+      "nativeParserAccepted": true
+    },
+    {
+      "file": "mist-gray-dark.txt",
+      "sha256": "3cfcc510e4e85224d6c3ab664bbba3d78e5b10647bc9c44f172a31c592481214",
+      "nativeParserAccepted": true
+    },
+    {
+      "file": "mist-gray-light.txt",
+      "sha256": "4b5094b4af3ae43dc0bb4f50b5800a908f62a8928e4516e75c992c73fd3d3764",
+      "nativeParserAccepted": true
+    }
+  ],
+  "negativeControls": [
+    "variant mismatch rejected",
+    "unknown codeThemeId rejected",
+    "alpha hex color rejected"
+  ],
+  "liveImportVerified": false,
+  "translucencyRenderedVerified": false,
+  "browserChecks": {
+    "presetModeCombinations": 6,
+    "invalidColorExportBlocked": true,
+    "desktopWidth": 1707,
+    "mobileWidth": 390,
+    "horizontalOverflow": false,
+    "invalidFontExportBlocked": true,
+    "emptyFontExportedAsNull": true,
+    "customCodeFontPreserved": true,
+    "copyHandlerCheckedWithClipboardStub": true
+  }
+}

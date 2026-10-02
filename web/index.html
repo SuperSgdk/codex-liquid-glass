@@ -1,0 +1,151 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="color-scheme" content="light">
+    <meta name="description" content="在本地预览 Codex 原生主题配色，并生成可导入的主题文本。">
+    <title>Codex 主题开发原型</title>
+    <link rel="stylesheet" href="/style.css">
+    <script src="/app.js" defer></script>
+  </head>
+  <body>
+    <header class="site-header">
+      <a class="identity" href="#main" aria-label="Codex 主题开发原型，跳转到内容">
+        <span class="identity-mark" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="m8 6-6 6 6 6M16 6l6 6-6 6M14 4l-4 16" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+        <span>Codex <span class="identity-subtitle">主题开发原型</span></span>
+      </a>
+      <span class="local-badge"><span aria-hidden="true"></span>本地预览</span>
+    </header>
+
+    <main id="main" class="page">
+      <div class="intro">
+        <div>
+          <p class="eyebrow">从一套舒服的配色开始</p>
+          <h1>给 Codex 换一种感觉。</h1>
+          <p class="intro-description">选择配色、微调颜色，然后把主题文本带进 Codex。</p>
+        </div>
+        <div class="intro-note"><span class="note-symbol" aria-hidden="true">✦</span><span>独立的 Codex 主题项目<br><strong>使用官方主题导入方式</strong></span></div>
+      </div>
+
+      <div id="load-error" class="error-banner" role="alert" hidden></div>
+
+      <div class="workspace">
+        <section class="controls-card" aria-labelledby="controls-title">
+          <div class="card-heading">
+            <div><p class="section-kicker">01 / 配色</p><h2 id="controls-title">调出你的主题</h2></div>
+            <button id="reset-theme" class="text-button" type="button" disabled>还原本模式</button>
+          </div>
+
+          <fieldset class="presets-fieldset">
+            <legend class="field-label">从预设开始</legend>
+            <div id="presets" class="presets" aria-busy="true"><p class="loading-text">正在读取预设…</p></div>
+          </fieldset>
+
+          <div class="control-divider"></div>
+
+          <div class="mode-row">
+            <span id="mode-label" class="field-label">外观模式</span>
+            <div class="segmented-control" role="group" aria-labelledby="mode-label">
+              <button id="light-mode" type="button" aria-pressed="true" disabled><span aria-hidden="true">☀</span>浅色</button>
+              <button id="dark-mode" type="button" aria-pressed="false" disabled><span aria-hidden="true">☾</span>深色</button>
+            </div>
+          </div>
+
+          <div class="color-fields">
+            <div class="color-field">
+              <label for="accent-text">强调色<span>按钮与选中状态</span></label>
+              <div class="color-entry"><input id="accent-color" type="color" value="#34756b" aria-label="选择强调色" disabled><input id="accent-text" type="text" value="#34756B" pattern="#[0-9A-Fa-f]{6}" maxlength="7" spellcheck="false" autocomplete="off" aria-label="强调色十六进制值" disabled></div>
+            </div>
+            <div class="color-field">
+              <label for="background-text">背景色<span>主界面的底色</span></label>
+              <div class="color-entry"><input id="background-color" type="color" value="#f5f7f6" aria-label="选择背景色" disabled><input id="background-text" type="text" value="#F5F7F6" pattern="#[0-9A-Fa-f]{6}" maxlength="7" spellcheck="false" autocomplete="off" aria-label="背景色十六进制值" disabled></div>
+            </div>
+            <div class="color-field">
+              <label for="foreground-text">文字色<span>正文与主要文字</span></label>
+              <div class="color-entry"><input id="foreground-color" type="color" value="#252e2b" aria-label="选择文字色" disabled><input id="foreground-text" type="text" value="#252E2B" pattern="#[0-9A-Fa-f]{6}" maxlength="7" spellcheck="false" autocomplete="off" aria-label="文字色十六进制值" disabled></div>
+            </div>
+          </div>
+          <p id="color-error" class="field-error" role="alert" hidden>请输入完整的六位颜色，例如 #34756B。</p>
+
+          <div class="font-fields">
+            <label for="ui-font"><span class="field-label">界面字体</span><input id="ui-font" type="text" placeholder="系统默认" spellcheck="false" autocomplete="off" aria-describedby="font-note font-error" disabled></label>
+            <label for="code-font"><span class="field-label">代码字体</span><input id="code-font" type="text" placeholder="系统默认" spellcheck="false" autocomplete="off" aria-describedby="font-note font-error" disabled></label>
+          </div>
+          <p id="font-note" class="font-note">可选，填写系统已有字体；不附带字体文件。留空使用默认字体。</p>
+          <p id="font-error" class="field-error" role="alert" hidden>字体名称最多 240 个字符，不能包含控制字符。</p>
+
+          <div class="contrast-field">
+            <div class="range-heading"><label class="field-label" for="contrast">界面对比度</label><output id="contrast-value" for="contrast">50</output></div>
+            <input id="contrast" type="range" min="0" max="100" step="1" value="50" disabled>
+            <div class="range-endpoints" aria-hidden="true"><span>柔和</span><span>鲜明</span></div>
+          </div>
+
+          <label class="checkbox-row" for="translucent-sidebar"><span><strong>半透明侧边栏</strong><small>由 Codex 客户端决定实际效果</small></span><input id="translucent-sidebar" type="checkbox" disabled></label>
+        </section>
+
+        <section class="preview-section" aria-labelledby="preview-title">
+          <div class="preview-heading">
+            <div><p class="section-kicker">02 / 预览</p><h2 id="preview-title">看看它的样子</h2></div>
+            <span class="preview-tag">界面示意</span>
+          </div>
+
+          <div id="preview-window" class="preview-window" data-mode="light" data-translucent="false">
+            <div class="mock-titlebar"><span class="window-dots" aria-hidden="true"><i></i><i></i><i></i></span><span class="window-title">Codex</span><span class="window-titlebar-spacer" aria-hidden="true"></span></div>
+            <div class="mock-content">
+              <aside class="mock-sidebar" aria-label="侧边栏配色示意">
+                <div class="mock-sidebar-top">
+                  <div class="mock-sidebar-brand"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="m8 6-6 6 6 6M16 6l6 6-6 6M14 4l-4 16" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg><strong>Codex</strong><span class="mock-collapse" aria-hidden="true">◫</span></div>
+                  <div class="mock-nav"><span aria-hidden="true">＋</span>新建聊天</div>
+                  <div class="mock-nav"><span aria-hidden="true">◷</span>自动化</div>
+                  <div class="mock-nav"><span aria-hidden="true">▧</span>插件</div>
+                  <div class="mock-group-label">项目<span aria-hidden="true">＋</span></div>
+                  <div class="mock-project"><span class="folder-icon" aria-hidden="true"></span>我的主题项目</div>
+                  <div class="mock-chat active"><span class="chat-dot" aria-hidden="true"></span>为工作区换个配色</div>
+                  <div class="mock-chat">整理项目文档</div>
+                  <div class="mock-chat">查看代码变更</div>
+                  <div class="mock-group-label second">最近</div>
+                  <div class="mock-chat standalone">一个新的想法</div>
+                </div>
+                <div class="mock-profile"><span class="profile-avatar" aria-hidden="true">S</span><span>个人工作区<small>准备好开始下一步</small></span><span class="profile-more" aria-hidden="true">···</span></div>
+              </aside>
+
+              <div class="mock-main">
+                <div class="mock-chat-header"><span>为工作区换个配色</span><span class="mock-header-status"><span aria-hidden="true"></span>本地</span></div>
+                <div class="mock-conversation">
+                  <div class="conversation-date">今天</div>
+                  <div class="mock-user-message">帮我把这个项目的 README 写得更清楚。</div>
+                  <div class="mock-assistant-message">
+                    <div class="assistant-label"><span class="assistant-icon" aria-hidden="true">✳</span>Codex</div>
+                    <p>我会先梳理项目的用途，再把安装步骤和使用示例补充完整。</p>
+                    <div class="mock-tool-card"><span class="tool-icon" aria-hidden="true">↗</span><div><strong>查看项目文件</strong><code>README.md · package.json</code></div><span class="tool-check" aria-hidden="true">✓</span></div>
+                    <p>文档可以从这三个部分开始：</p>
+                    <ol class="mock-list"><li><strong>项目介绍</strong><span>说明它解决什么问题。</span></li><li><strong>快速开始</strong><span>用最少的步骤运行起来。</span></li><li><strong>使用示例</strong><span>给一个能照着操作的例子。</span></li></ol>
+                    <span class="mock-link">查看建议的文档结构 <span aria-hidden="true">↗</span></span>
+                  </div>
+                </div>
+                <div class="mock-composer-area">
+                  <div class="mock-composer"><span class="composer-placeholder">这里展示输入框的配色…</span><div class="composer-toolbar"><span aria-hidden="true">＋</span><span class="composer-model">Codex <span aria-hidden="true">⌄</span></span><span class="composer-send" aria-hidden="true">↑</span></div></div>
+                  <p class="mock-caption">这是静态界面示意，不会发送聊天</p>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="preview-footnote"><span id="readability" class="readability"><span class="readability-dot" aria-hidden="true"></span><span id="readability-text">正文对比度计算中</span></span><span>实际渲染以 Codex 客户端为准</span></div>
+        </section>
+      </div>
+
+      <section class="export-card" aria-labelledby="export-title">
+        <div class="export-intro"><p class="section-kicker">03 / 导入</p><h2 id="export-title">把配色带进 Codex</h2><p>选择对应的明暗主题，复制文本，再到 Codex 外观设置中导入。</p></div>
+        <div class="export-actions-area">
+          <label class="name-field" for="theme-name"><span class="field-label">下载文件名（可选）</span><input id="theme-name" type="text" maxlength="64" placeholder="留空使用 codex-theme" autocomplete="off" disabled></label>
+          <div class="export-buttons"><button id="copy-theme" class="primary-button" type="button" disabled><svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><rect x="7" y="7" width="9" height="10" rx="2" stroke="currentColor" stroke-width="1.5"/><path d="M12 4H6a2 2 0 0 0-2 2v6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg><span>生成并复制</span></button><button id="download-theme" class="secondary-button" type="button" disabled><span aria-hidden="true">↓</span>下载 .txt</button></div>
+          <p id="export-status" class="export-status" role="status" aria-live="polite">导入只改变当前主题支持的颜色、字体和侧边栏选项。</p>
+        </div>
+        <div id="export-result" class="export-result" hidden><div class="result-heading"><label for="theme-text">Codex 主题导入文本</label><span id="export-mode-label">浅色主题</span></div><textarea id="theme-text" rows="4" readonly spellcheck="false" aria-describedby="import-instructions"></textarea><p id="import-instructions">在 Codex 的 <strong>设置 → 外观 → 浅色主题 / 深色主题 → 导入</strong> 中粘贴这段文本。请选择与当前导出模式对应的主题。</p></div>
+      </section>
+
+      <footer class="page-footer"><span>Codex 主题开发原型</span><span>当前范围：原生配色主题 · 半透明侧边栏 · 主题文本导出</span></footer>
+    </main>
+  </body>
+</html>

@@ -1,0 +1,16 @@
+{
+  "name": "codex-theme-dev",
+  "version": "0.1.0-dev",
+  "private": true,
+  "type": "module",
+  "description": "Codex 桌面原生主题的独立开发原型",
+  "license": "AGPL-3.0-only",
+  "author": "SuperSgdk",
+  "engines": { "node": ">=22" },
+  "scripts": {
+    "build": "node scripts/build.mjs",
+    "test": "node --test tests/*.test.mjs",
+    "check": "node scripts/check.mjs",
+    "preview": "node scripts/preview.mjs"
+  }
+}
